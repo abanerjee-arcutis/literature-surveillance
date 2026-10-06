@@ -1,0 +1,68 @@
+<?xml version="1.0" ?>
+<PubmedArticleSet>
+<PubmedArticle><MedlineCitation Status="Publisher"><PMID Version="1">42728891</PMID>
+<Article><Journal><ISOAbbreviation>Dermatitis</ISOAbbreviation><Title>Dermatitis : contact, atopic, occupational, drug</Title></Journal>
+<ArticleTitle>Allergic Contact Dermatitis to Parabens Associated With Topical Roflumilast Cream: A Case Series of 2 Patients.</ArticleTitle>
+<Abstract><AbstractText>We describe 2 patients who developed allergic contact dermatitis to parabens while using topical roflumilast cream. Both had positive patch test reactions to roflumilast cream and paraben mix. The first patient improved significantly after discontinuation.&#160; Clinicians should consider excipient allergy when patients worsen on roflumilast.</AbstractText></Abstract>
+<AuthorList><Author><LastName>Waldal</LastName><Initials>GL</Initials></Author><Author><LastName>Smith</LastName><Initials>A</Initials></Author></AuthorList>
+<PublicationTypeList><PublicationType>Case Reports</PublicationType><PublicationType>Journal Article</PublicationType></PublicationTypeList>
+<ArticleDate><Year>2026</Year><Month>06</Month><Day>28</Day></ArticleDate></Article>
+<MeshHeadingList><MeshHeading><DescriptorName>Dermatitis, Atopic</DescriptorName></MeshHeading></MeshHeadingList>
+</MedlineCitation><PubmedData><ArticleIdList><ArticleId IdType="pubmed">42728891</ArticleId><ArticleId IdType="doi">10.1089/derm.2026.0001</ArticleId></ArticleIdList>
+<ReferenceList><Reference><Citation>Old paper</Citation><ArticleIdList><ArticleId IdType="pmc">PMC5662305</ArticleId><ArticleId IdType="doi">10.1000/old</ArticleId></ArticleIdList></Reference></ReferenceList></PubmedData></PubmedArticle>
+
+<PubmedArticle><MedlineCitation Status="MEDLINE"><PMID Version="1">42700001</PMID>
+<Article><Journal><ISOAbbreviation>J Dermatolog Treat</ISOAbbreviation><Title>Journal of dermatological treatment</Title></Journal>
+<ArticleTitle>Real-world clinical experience with ruxolitinib cream versus systemic therapies in patients with moderate atopic dermatitis in the United States.</ArticleTitle>
+<Abstract>
+<AbstractText Label="BACKGROUND" NlmCategory="BACKGROUND">Ruxolitinib cream is a topical JAK inhibitor approved for atopic dermatitis (AD).</AbstractText>
+<AbstractText Label="METHODS" NlmCategory="METHODS">Data from the Adelphi AD Disease Specific Programme (n=619) were analysed.</AbstractText>
+<AbstractText Label="RESULTS" NlmCategory="RESULTS">Mean affected BSA decreased by 49% with ruxolitinib cream, 35% with systemic immunosuppressants, 61% with oral JAK inhibitors and 55% with biologics. Physician-reported severity improved in 48.4% of ruxolitinib cream patients. Results were similar in patients with BSA of 20% or less.</AbstractText>
+<AbstractText Label="CONCLUSIONS" NlmCategory="CONCLUSIONS">Ruxolitinib cream showed outcomes comparable to systemic therapies in moderate AD.</AbstractText>
+</Abstract>
+<AuthorList><Author><LastName>Liu</LastName><Initials>J</Initials></Author><Author><LastName>Chen</LastName><Initials>B</Initials></Author><Author><LastName>Roy</LastName><Initials>C</Initials></Author><Author><LastName>Das</LastName><Initials>D</Initials></Author></AuthorList>
+<PublicationTypeList><PublicationType>Journal Article</PublicationType><PublicationType>Observational Study</PublicationType></PublicationTypeList>
+<ArticleDate><Year>2026</Year><Month>07</Month><Day>02</Day></ArticleDate></Article>
+<CoiStatement>This study was funded by Incyte Corporation.</CoiStatement>
+</MedlineCitation><PubmedData><ArticleIdList><ArticleId IdType="pubmed">42700001</ArticleId><ArticleId IdType="doi">10.1080/09546634.2026.2698965</ArticleId><ArticleId IdType="pmc">PMC12345678</ArticleId></ArticleIdList></PubmedData></PubmedArticle>
+
+<PubmedArticle><MedlineCitation Status="Publisher"><PMID Version="1">42693807</PMID>
+<Article><Journal><ISOAbbreviation>J Dermatol</ISOAbbreviation><Title>The Journal of dermatology</Title><JournalIssue><PubDate><Year>2026</Year><Month>Jun</Month></PubDate></JournalIssue></Journal>
+<ArticleTitle>Aryl Hydrocarbon Receptor Agonist-Based Phototherapy for Psoriasis: Combinational Therapy With Tapinarof and Narrowband Ultraviolet B.</ArticleTitle>
+<AuthorList><Author><LastName>Shimizu</LastName><Initials>Y</Initials></Author></AuthorList>
+<PublicationTypeList><PublicationType>Letter</PublicationType></PublicationTypeList></Article>
+</MedlineCitation><PubmedData><ArticleIdList><ArticleId IdType="pubmed">42693807</ArticleId></ArticleIdList></PubmedData></PubmedArticle>
+
+<PubmedArticle><MedlineCitation Status="MEDLINE"><PMID Version="1">42600000</PMID>
+<Article><Journal><ISOAbbreviation>Blood</ISOAbbreviation><Title>Blood</Title></Journal>
+<ArticleTitle>Ruxolitinib for steroid-refractory chronic graft-versus-host disease after allogeneic transplant.</ArticleTitle>
+<Abstract><AbstractText>Ruxolitinib improved response rates in chronic GVHD with skin involvement.</AbstractText></Abstract>
+<AuthorList><Author><LastName>Zeiser</LastName><Initials>R</Initials></Author></AuthorList>
+<PublicationTypeList><PublicationType>Randomized Controlled Trial</PublicationType></PublicationTypeList>
+<ArticleDate><Year>2026</Year><Month>07</Month><Day>01</Day></ArticleDate></Article>
+</MedlineCitation><PubmedData><ArticleIdList><ArticleId IdType="pubmed">42600000</ArticleId></ArticleIdList></PubmedData></PubmedArticle>
+
+<PubmedArticle><MedlineCitation Status="Publisher"><PMID Version="1">42657782</PMID>
+<Article><Journal><ISOAbbreviation>Br J Dermatol</ISOAbbreviation><Title>The British journal of dermatology</Title><JournalIssue><Volume>195</Volume><Issue>Suppl 1</Issue><PubDate><Year>2026</Year><Month>Jul</Month></PubDate></JournalIssue></Journal>
+<ArticleTitle>Topical Steroid Withdrawal Syndrome and Adverse Effects of Topical Corticosteroids in Vulval Lichen Sclerosus: a Single-centre Retrospective Study in New Zealand.</ArticleTitle>
+<AuthorList><Author><LastName>Yang</LastName><Initials>G</Initials></Author></AuthorList><Language>eng</Language>
+<PublicationTypeList><PublicationType>Journal Article</PublicationType></PublicationTypeList></Article>
+</MedlineCitation><PubmedData><ArticleIdList><ArticleId IdType="pubmed">42657782</ArticleId><ArticleId IdType="doi">10.1093/bjd/ljag362</ArticleId></ArticleIdList></PubmedData></PubmedArticle>
+
+<PubmedArticle><MedlineCitation Status="MEDLINE"><PMID Version="1">42600001</PMID>
+<Article><Journal><ISOAbbreviation>J Eur Acad Dermatol Venereol</ISOAbbreviation><Title>JEADV</Title></Journal>
+<ArticleTitle>Retraction: Topical ruxolitinib in vitiligo.</ArticleTitle><Language>eng</Language>
+<PublicationTypeList><PublicationType>Retraction of Publication</PublicationType></PublicationTypeList>
+<ArticleDate><Year>2026</Year><Month>08</Month><Day>01</Day></ArticleDate></Article>
+</MedlineCitation><PubmedData><ArticleIdList><ArticleId IdType="pubmed">42600001</ArticleId></ArticleIdList></PubmedData></PubmedArticle>
+
+<PubmedArticle><MedlineCitation Status="In-Process"><PMID Version="1">42600002</PMID>
+<Article><Journal><ISOAbbreviation>Hautarzt</ISOAbbreviation><Title>Der Hautarzt</Title></Journal>
+<ArticleTitle>[Topical roflumilast in psoriasis: a review].</ArticleTitle><Language>ger</Language>
+<PublicationTypeList><PublicationType>Journal Article</PublicationType><PublicationType>Review</PublicationType></PublicationTypeList>
+<ArticleDate><Year>2026</Year><Month>08</Month><Day>15</Day></ArticleDate></Article>
+</MedlineCitation><PubmedData><ArticleIdList><ArticleId IdType="pubmed">42600002</ArticleId></ArticleIdList></PubmedData></PubmedArticle>
+
+<PubmedBookArticle><BookDocument><PMID Version="1">42600003</PMID><Book><BookTitle>StatPearls</BookTitle><PubDate><Year>2026</Year></PubDate></Book>
+<ArticleTitle>Topical Corticosteroids</ArticleTitle><Abstract><AbstractText>Topical corticosteroids are widely used in dermatitis and psoriasis. This chapter reviews potency classes and adverse effects.</AbstractText></Abstract></BookDocument></PubmedBookArticle>
+</PubmedArticleSet>

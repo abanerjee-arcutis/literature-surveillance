@@ -1,0 +1,15 @@
+term,product_category,pubmed_query
+Tapinarof,Competitor,tapinarof[tiab]
+Orismilast,Competitor,orismilast[tiab]
+Roflumilast cream,Roflumilast,roflumilast[tiab] AND cream[tiab]
+Roflumilast dermatitis,Roflumilast,roflumilast[tiab] AND dermatitis[tiab]
+Roflumilast foam,Roflumilast,roflumilast[tiab] AND foam[tiab]
+Roflumilast psoriasis,Roflumilast,roflumilast[tiab] AND psoriasis[tiab]
+Roflumilast seborrheic dermatitis,Roflumilast,roflumilast[tiab] AND seborrheic[tiab]
+Delgocitinib,Competitor,delgocitinib[tiab]
+Ruxolitinib,Competitor,ruxolitinib[tiab] AND (dermatitis[tiab] OR vitiligo[tiab] OR psoriasis[tiab] OR eczema[tiab] OR skin[tiab])
+Ruxolitinib topical,Competitor,ruxolitinib[tiab] AND (cream[tiab] OR topical[tiab])
+Topical corticosteroids,Class,topical corticosteroid*[tiab] AND (dermatitis[tiab] OR psoriasis[tiab] OR eczema[tiab])
+Topical roflumilast,Roflumilast,topical roflumilast[tiab]
+Topical Janus kinase inhibitor,Class,topical[tiab] AND (JAK inhibitor*[tiab] OR Janus kinase inhibitor*[tiab])
+Topical steroid withdrawal,Class,topical steroid withdrawal[tiab]

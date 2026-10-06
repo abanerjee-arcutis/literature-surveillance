@@ -1,0 +1,7 @@
+command: ["python", "app.py"]
+env:
+  # EDIT: the tables from tables.sql without their _articles / _decisions / ... ending: <catalog>.<schema>.<table_prefix>
+  - name: LITSURV_TABLES
+    value: "medical_prod.apps.literature_surveillance"
+  - name: DATABRICKS_WAREHOUSE_ID
+    valueFrom: sql-warehouse                         # the app resource of that name in databricks.yml
