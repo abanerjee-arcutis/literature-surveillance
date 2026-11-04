@@ -20,18 +20,18 @@ for a in arts:
 by = {a["pmid"]: a for a in arts}
 a = by["42728891"]
 assert a["product"] == "Roflumilast" and a["disease"] == ["Atopic Dermatitis"] and a["study_type"] == "Case report"
-assert a["access"] == "Abstract" and a["priority"] == "High" and a["rule"] is None
+assert a["access"] == "Abstract" and a["priority"] == "Must read" and a["rule"] is None
 assert "Based on the abstract only" in a["summary"]
 assert a["pmc"] is None and a["doi"] == "10.1089/derm.2026.0001", "reference-list IDs must not leak"
 assert "\xa0" not in a["abstract"] and "&#160" not in a["abstract"]
 
 b = by["42700001"]
 assert b["access"] == "Full text" and b["study_type"] == "Real-world" and b["sponsor"] == "Incyte"
-assert b["priority"] == "High" and any("49%" in p for p in b["points"]), b["points"]
+assert b["priority"] == "Must read" and any("49%" in p for p in b["points"]), b["points"]
 assert "Adelphi" in b["summary"] and "comparable" in b["summary"]
 
 c = by["42693807"]
-assert c["access"] == "Title only" and c["priority"] == "Check" and c["points"] == []
+assert c["access"] == "Title only" and c["priority"] == "Of interest" and c["points"] == []
 assert c["pub_date"] == "2026-06-01", c["pub_date"]
 
 d = by["42600000"]
@@ -66,15 +66,38 @@ for title, study, want in [
     assert S.tag_intent(title, None, study)[0] == want, (title, S.tag_intent(title, None, study))
 assert S.tag_intent("Koebner phenomenon in a flap", "A randomized, double-blind study of 40 patients.", "Article") == ("Efficacy", 'abstract: "randomized"')
 
-# --- L3 priority keywords: a match in the title or abstract makes an article High, unless a rule fired ----------
+# --- L3 priority: the L3 reasons and push-down rules score each article; the score sets its priority ----------
+assert len(S.L3_INTENTS) == 23 and len(S.L3_PUSH_DOWN) == 9
+assert all(list(r) == list(S.L3_RULE_FIELDS) for r in S.DEFAULT_L3_RULES)
+assert [h["id"] for h in a["l3_intents"]] == ["own_product", "own_product_mention", "formulation"] and a["l3_score"] == 110
+assert a["l3_intents"][0]["keywords"] == ["roflumilast"] and a["auto_accept"] == "Must read: Own product: topical roflumilast"
+assert [h["id"] for h in b["l3_intents"]][0] == "comparative" and b["l3_score"] == 95      # 85, +5 for each of two more
+assert (c["l3_score"], d["l3_score"], d["priority"], d["auto_accept"]) == (75, 0, "Low", None)
+assert [p["id"] for p in d["l3_push_down"]] == ["oral_jak_other"]
+assert [S.l3_band(n) for n in (100, 85, 84, 60, 59, 40, 39, 0)] == ["Must read"] * 2 + ["Of interest"] * 2 + ["FYI"] * 2 + ["Low"] * 2
+score = lambda title, abstract=None, study=None, text="": S.l3_score(S.DEFAULT_L3_RULES, title, abstract, study, text)
+assert score("Roflumilast cream 0.3% for Darier disease: a case report")[0] == 100
+assert score("Roflumilast in COPD exacerbations")[0] == 0                                     # none_of: not the cream
+assert score("P1234 Roflumilast cream in adolescents")[0] == 60                               # congress abstract: -40
+s, _, pushed = score("Roflumilast cream in adults with psoriasis", "A pooled analysis.", text="Funded by Arcutis Biotherapeutics")
+assert s == 105 - 35 and [p["id"] for p in pushed] == ["arcutis_funded"], pushed
+assert score("Topical roflumilast: a Delphi consensus", text="Funded by Arcutis")[2] == []    # sponsored consensus is not pushed down
+assert score("Ruxolitinib cream for vitiligo")[0] == 0 and score("Roflumilast cream for vitiligo")[0] == 100
+assert score("Seborrheic dermatitis and quality of life")[1][0]["id"] == "seb_derm"
+# L3 keywords saved in Settings count as one more reason, worth OWN_KEYWORD_POINTS; an exclusion rule still makes it Low
 assert S.match_l3(["child", "long-term safety", "foam", 'scalp "psoriasis"'], "Long term safety of roflumilast in children", None) == ["child", "long-term safety"]
 assert S.match_l3(["vehicle"], "Tapinarof cream", "Compared with vehicle at week 8.") == ["vehicle"]
 assert c["l3_keywords"] == [] and d["l3_keywords"] == []
 c3 = S.enrich(dict(c), term_cat, rules, l3_keywords=["phototherapy", "scalp"])
 d3 = S.enrich(dict(d), term_cat, rules, l3_keywords=["transplant"])
-assert c3["l3_keywords"] == ["phototherapy"] and c3["priority"] == "High", (c3["l3_keywords"], c3["priority"])
+assert c3["l3_keywords"] == ["phototherapy"] and c3["l3_score"] == c["l3_score"] + 5 and c3["l3_intents"][1]["id"] == "own_keywords"
+assert S.l3_score(S.DEFAULT_L3_RULES, "Atopic dermatitis registry", None, own=["registry"])[0] == S.OWN_KEYWORD_POINTS
 assert d3["l3_keywords"] == ["transplant"] and d3["priority"] == "Low"
 assert S.to_page_row(c3, None)["l3"] == ["phototherapy"]
+# the _intents table can replace the built-in reasons: a single reason, no push-down rules
+only = [dict(intent_id="x", kind="intent", intent="Graft", weight=90, keyword_groups=[dict(field="title", keywords=["graft"])])]
+d4 = S.enrich(dict(d), term_cat, rules, l3_rules=only)
+assert d4["l3_score"] == 90 and d4["l3_push_down"] == [] and d4["priority"] == "Low"          # the exclusion rule still wins
 
 # --- PMC full text for an article with no abstract ---------------------------
 ft = S.parse_pmc_xml(open(os.path.join(HERE, "fixture_pmc.xml"), "rb").read())
@@ -157,6 +180,9 @@ assert row["src"] == "PubMed, OpenAlex, Google Scholar" and row["links"][-1]["ur
 assert S.page_status(None, None) == "review" and S.page_status("Veterinary", None) == "ignored"
 assert S.page_status("Veterinary", "restored") == "review" and S.page_status("Veterinary", "accepted") == "accepted"
 assert S.page_status(None, "ignored") == "ignored" and S.page_status(None, "removed") == "ignored"
+why = "Must read: Own product: topical roflumilast"     # accepted automatically, unless a reviewer decided otherwise
+assert S.page_status(None, None, why) == "accepted" and S.page_status(None, "restored", why) == "review"
+assert S.page_status(None, "ignored", why) == "ignored" and S.page_status("Veterinary", None, why) == "accepted"
 decided = {"42728891": "accepted", "42700001": "removed", "42600000": "restored"}
 rows = [S.to_page_row(x, decided.get(x["pmid"])) for x in arts]
 by_id = {r["id"]: r for r in rows}
@@ -164,6 +190,32 @@ assert by_id["42728891"]["status"] == "accepted" and by_id["42693807"]["status"]
 assert by_id["42700001"]["status"] == "ignored" and by_id["42700001"]["decision"] == "ignored" and by_id["42700001"]["rule"] is None
 assert by_id["42600000"]["status"] == "review" and by_id["42600000"]["rule"] == "Transplant / haematology context"
 assert by_id["42600001"]["status"] == "ignored" and by_id["42600001"]["decision"] is None
+assert by_id["42657782"]["status"] == "accepted" and by_id["42657782"]["auto"] == "Must read: Topical steroid harms"
+assert by_id["42693807"]["prio"] == "Of interest" and by_id["42693807"]["score"] == 75 and by_id["42693807"]["auto"] is None
+assert [h["id"] for h in by_id["42600002"]["l3i"]] == ["own_product", "own_product_mention"] and by_id["42600002"]["pen"][0]["points"] == -30
+
+# --- articles sent in Articles of Interest emails: accepted, whatever the score or exclusion rules -------------
+mail = lambda when, rec: dict(email_date=when, email_subject="INFORM: Articles of Interest", tier="main",
+                              reviewer_note="Brett, please comment", record=json.dumps(rec))
+known = dict(rec("PubMed", "Ruxolitinib for steroid-refractory chronic graft-versus-host disease", pmid="42600000"),
+             sources=["Email"], first_seen="2026-02-02")
+unknown = dict(rec("Email", "Clinical response to topical roflumilast in four patients with scarring alopecia", authors=["Modanlo N"],
+                   journal="Dermatology Online Journal", pub_date="2026-01-01", url="https://escholarship.org/uc/item/x"),
+               sources=["Email"], first_seen="2026-03-02T00:00:00")
+mstore = {"42600000": dict(d)}; midx = S.Index(mstore)
+assert S.add_emailed(mstore, midx, [mail("2026-10-16 15:02:00", unknown), mail("2026-03-02 09:00:00", known),
+                                     mail("2026-06-01 09:00:00", known), dict(email_date="2026-05-01", record=None)]) == 1
+new_key = S.record_key(unknown)
+assert sorted(mstore) == ["42600000", new_key] and new_key.startswith("email:") and mstore[new_key]["sources"] == ["Email"]
+assert mstore["42600000"].get("sources") == d.get("sources") and mstore["42600000"]["emailed"]["date"] == "2026-03-02"   # the first email
+for x in mstore.values():
+    S.enrich(x, term_cat, rules)
+assert mstore["42600000"]["rule"] and mstore["42600000"]["auto_accept"] == "Sent in the Articles of Interest email of 2 Mar 2026"
+mrow = S.to_page_row(mstore[new_key], None, key=new_key)
+assert mrow["status"] == "accepted" and mrow["src"] == "Email" and mrow["via"] == "Dermatology Online Journal" and mrow["prio"] == "Must read"
+assert mrow["emailed"] == dict(date="2026-10-16", subject="INFORM: Articles of Interest", tier="main", note="Brett, please comment")
+assert S.to_page_row(mstore["42600000"], "restored")["status"] == "review"
+assert S.add_emailed(mstore, midx, []) == 0 and not any("emailed" in x for x in mstore.values())   # an email row removed: unmarked
 
 # --- reasons: keywords offered when accepting or ignoring, and the ones ticked --------------
 assert by["42700001"]["keywords"] == ["Ruxolitinib", "Head-to-head"], by["42700001"]["keywords"]
@@ -213,16 +265,17 @@ assert dr["decided_at"].isoformat() == "2026-10-01T10:00:00+00:00"
 sr = S.settings_row(saved)
 assert list(sr) == columns("settings") and sr["terms"] == [("Tapinarof", "Competitor", "tapinarof[tiab]", "", "")] and sr["scholar_pages"] == 2
 assert all(re.findall(r"(\w+): STRING", s) == S.TERM_FIELDS for s in re.findall(r"ARRAY<STRUCT<(.*?)>>", sql_text))
-run_settings = dict(saved, keys=dict(pubmed=True, openalex=False, scholar=True))
+run_settings = dict(saved, keys=dict(pubmed=True, openalex=False, scholar=True), l3_rules=S.DEFAULT_L3_RULES)
 rr = S.run_row(run_settings, S.date(2026, 7, 30), S.date(2026, 10, 28), "medical_prod.apps.literature_surveillance_settings", 120, 4, 80)
 assert list(rr) == columns("runs") and rr["api_keys"] == (True, False, True) and rr["terms"] == sr["terms"]
+assert json.loads(rr["l3_rules"]) == S.DEFAULT_L3_RULES
 assert S.page_header(["openalex", "pubmed"], S.date(2026, 7, 30), S.date(2026, 10, 28), S.datetime(2026, 10, 28, 13, 5)) == \
     "PubMed, OpenAlex surveillance · 30 Jul – 28 Oct 2026 · generated 28 Oct 2026 13:05"
 
 # --- render: DATA and SETTINGS survive the trip into the page's script -------------------
 rows[0]["summary"] = 'A "quoted" back\\slash, a\nnewline and </script>'
 settings = dict(terms=S.clean_terms(terms), sources=["pubmed", "openalex"], scholar_pages=2, priority_keywords=["retrospective"],
-                keys=dict(pubmed=True, openalex=False, scholar=False))
+                l3_rules=S.DEFAULT_L3_RULES, keys=dict(pubmed=True, openalex=False, scholar=False))
 out = os.path.join(HERE, "page_offline.html")
 S.render(rows, S.TEMPLATE, out, "PubMed surveillance · test window", settings=settings)
 html = open(out, encoding="utf-8").read()
@@ -233,4 +286,4 @@ page_settings = re.search(r"const SETTINGS = (.*);\n", html).group(1)
 assert json.loads(page_settings) == settings and html.count("const SETTINGS = ") == 1
 print("offline test OK ->", out)
 for r in rows:
-    print(f"  {r['prio']:6s} {r['access']:10s} {r['product']:11s} {r['status']:8s} {r['title'][:60]}")
+    print(f"  {r['prio']:11s} {r['access']:10s} {r['product']:11s} {r['status']:8s} {r['title'][:60]}")

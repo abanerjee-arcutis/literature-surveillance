@@ -20,27 +20,33 @@ terms and rules.
 
 ## The page
 
-- **Review feed** – new articles waiting for a decision. ✓ accepts an article, ✕ ignores it. Each row
-  shows its matched term, disease, intent (safety in red), access and priority.
+- **Review feed** – new articles waiting for a decision, highest L3 score first. ✓ accepts an article, ✕
+  ignores it. Each row shows its matched term, disease, intent (safety in red), access and priority (with its L3
+  score; hover it for the reasons).
 - **Why accept / why ignore** – ✓ and ✕ first ask why, with no free text: tick at least one chip under
   *Keywords in this article* (its disease, intent, study type and sponsor, plus the drugs, patient groups,
   body sites and evidence words found in its title and abstract) or *Reason* (a fixed list each for
   accepting and ignoring, `REASONS` in `app/template.html`). Enter confirms, Esc cancels. The ticks are saved
   with the decision, shown under the title in the accepted feed, in the Reason column of the ignored feed
   and on the article page (*Edit* there changes them), and counted by the Reason filter.
-- **Accepted feed** – articles worth passing on to the team.
+- **Accepted feed** – articles worth passing on to the team: those a reviewer accepted, plus two kinds accepted
+  automatically, each with its own line under the title: ✉ every article sent in an INFORM Articles of Interest
+  email (`ci_mails/`), whatever its score or the exclusion rules, and ★ every Must read article no exclusion rule
+  ignored. *Move back to review* undoes an automatic accept (saved as `restored`); a reviewer's decision always wins.
+  The article page shows the email's date and what it said about the article.
 - **Ignored feed** – articles a reviewer ignored, plus those the exclusion rules filtered out. *Restore*
   sends one back to review (moving back to review asks nothing and clears the reasons).
 - **Settings** (top right) has four tabs. **Sources** switches PubMed, OpenAlex and Google Scholar on or
   off, sets Scholar pages per term, and shows whether the last run had each API key. **L1 keywords** lists
   the search terms with their query for each source (OpenAlex and Google Scholar queries are derived from
   the PubMed one unless you type your own). **L2 intent** shows, read-only, what decides each intent and how
-  many articles on the page have it. **L3 priority keywords** are words or phrases that rank articles
-  higher: an article with one in its title or abstract is High priority, listed first in its feed and
-  marked ↑. Saved settings apply from the next run.
+  many articles on the page have it. **L3 priority keywords** lists, read-only, the reasons to read and the
+  push-down rules the last run scored with: each reason's keyword lists and points, and how many articles on the
+  page it matched. Below them, your own L3 keywords can be added: an article with one in its title or abstract
+  gets a reason worth 60 points and is marked ↑. Saved settings apply from the next run.
 
 Above the feed tabs, a filters card holds the search box and one row of chips each for Published (last 30,
-60 or 90 days, by publication date), Disease, Intent, Source and Term, plus Reason (the reasons ticked,
+60 or 90 days, by publication date), Priority, Disease, Intent, Source and Term, plus Reason (the reasons ticked,
 most used first) on a feed that has any. Each chip shows how many articles in the current feed it would leave, given the other
 filters; clicking a selected chip again clears it, and *Clear filters* resets them all. The chevron folds
 the card down to the search box (its header then names the filters that are on); the browser remembers it. The filters apply
@@ -83,6 +89,8 @@ Useful options:
 | `data/articles.json` | the growing store, one record per article (created on first run) |
 | `data/decisions.csv` | optional; `pmid,decision` with `accepted`, `ignored` or `restored` (back to review despite an exclusion rule) to persist reviewer choices (`pmid` holds the article id shown on the page; the older `removed` still means ignored). The app also writes `by`, `at` and `reasons` (the chips ticked, separated by `;`), the record of why each article was accepted or ignored; files without the `reasons` column still work |
 | `data/settings.json` | optional; the search terms, sources, Scholar pages and L3 priority keywords saved from the page's Settings. When present it replaces `terms.csv` and the default `--sources` / `--scholar-pages`; delete it to go back to `terms.csv` |
+| `data/ci_articles.json` | optional; the articles sent in Articles of Interest emails, as the rows of the `_ci_articles` table (`ci_mails/build_tables.py --dry-run` writes them to `ci_mails/work/tables_payload.json`). Each is put on the accepted feed; one the search has not found is added to the store with the source *Email* |
+| `ci_mails/` | how the L3 reasons were learned from the INFORM Articles of Interest emails, and the script that loads the `_intents` and `_ci_articles` tables (its own README) |
 | `tests/test_offline.py` | parses fixtures and checks tagging, summaries, de-duplication and rendering without network |
 | `databricks.yml` | Databricks bundle: the daily job and the review app |
 | `tables.sql` | on Databricks, the three files above become the tables `medical_prod.apps.literature_surveillance_articles` (one row per article; the whole record is in its `record` column, and the page's copy in `page_row`), `_decisions` (one row per decided article, with `reasons` as an array) and `_settings` (one row per Save; the newest applies), plus `_runs` (one row per run: what it searched and found) |
@@ -106,7 +114,7 @@ Useful options:
 - **Access** – *Full text* when the open-access full text was retrieved from PMC (via E-utilities `db=pmc`), *Abstract* when PubMed, OpenAlex or PMC has one, else *Title only*. Each article carries up to five links: PMC full text, publisher page (DOI), PubMed record, another open-access copy (OpenAlex), and the page Google Scholar pointed to.
 - **Sponsor** – from the conflict-of-interest statement, grant agencies / OpenAlex funders, or a company name in the abstract; else *Not stated*.
 - **Keywords** (offered in the why-accept / why-ignore dialog) – `KEYWORDS` in `surveillance.py`: drugs and drug classes, patient groups (pediatric, infants, skin of color…), body sites (face, scalp, intertriginous…) and evidence words (long-term, head-to-head, itch, quality of life…). A keyword counts when it is in the title, or mentioned at least twice in the abstract (a single mention is often a list of earlier treatments); at most eight per article.
-- **Priority** – Low if a rule fired; High if an L3 priority keyword is in the title or abstract (matched as a phrase, ignoring case and punctuation, words as prefixes); Check if title only; High for roflumilast or competitor trial/RWE data; Low for preclinical, letters, editorials; else Medium. Within each priority, articles with an L3 keyword come first.
+- **Priority** – the L3 score, learned from the INFORM Articles of Interest emails (`ci_mails/`). `L3_INTENTS` in `surveillance.py` holds 23 reasons to read (own product 100 points; comparisons and guidelines 85; competitor safety and topical steroid harms 80; seborrheic dermatitis and TSW 75; … pregnancy, pipeline 50), each a set of keyword lists that must all match, in the title or in the title and abstract, with words that rule it out; `L3_PUSH_DOWN` holds 9 rules that take points off what was never sent (congress abstracts, Arcutis's own trial publications and funded work, oral JAK inhibitors, vitiligo and alopecia areata, lab studies, steroid phobia and social media, non-English, book chapters and preprints). Score = points of the best reason + 5 for each further reason (at most 15 more) − push-down points. **Must read** 85+, **Of interest** 60–84, **FYI** 40–59, **Low** under 40, or whenever an exclusion rule fired. Keywords match as phrases, ignoring case and punctuation, words as prefixes. With `--tables` the `_intents` table replaces the built-in list when it exists. Feeds list the highest score first.
 - **Summary / key points** – articles with no abstract but PMC full text (common for case reports) are summarised from the paper body: opening sentences, closing sentences of the discussion/conclusion, and sentences with figures as key points. For structured abstracts: one sentence each from Background, Methods and Conclusions; key points are the Results sentences containing numbers. Unstructured abstracts: first two and last sentence. Abstract-only items say so. No language model is involved, so nothing is invented; the wording is the authors' own.
 - **Why it matters** – templated from product, disease, study type and the caveats above (sponsor, single case, indication outside the core set).
 
@@ -129,6 +137,7 @@ PubMed is a citation index, not a full-text library. What the script can summari
 | PMID listed by search but record not yet loaded | nothing | Reported in the terminal, fetched on a later run | Explains "N new" being higher than the store growth; if OpenAlex has it, its copy is shown meanwhile |
 | Article not in PubMed but in OpenAlex | — | OpenAlex abstract if it has one (many publishers withhold abstracts from OpenAlex) | Non-MEDLINE journals, very recent articles |
 | Article found only by Google Scholar | — | Title only, with Scholar's snippet | Grey literature, publisher pages before indexing |
+| Article known only from an Articles of Interest email | — | Title only, with what the email said about it | UpToDate, trade journals, news; source *Email* |
 
 ## Limits of this version
 

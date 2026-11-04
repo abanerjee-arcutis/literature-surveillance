@@ -119,6 +119,11 @@ Open `tables.sql` from the project folder, paste all of it into the SQL editor, 
 It creates `literature_surveillance_articles`, `_runs`, `_decisions` and `_settings`.
 Running it again changes nothing.
 
+Optional, for the L3 priority learned from the Articles of Interest emails: `ci_mails/build_tables.py` creates
+and fills `literature_surveillance_intents` (the L3 reasons) and `_ci_articles` (the articles the emails sent),
+and the view `_ranked` (`ci_mails/README.md`). Without them the job scores with the reasons built into
+`surveillance.py` and puts no emailed articles on the page.
+
 ---
 
 ## Step 4 – Store your API keys as secrets
@@ -229,12 +234,28 @@ articles and runs tables and read/write access to the decisions and settings tab
 |---|---|
 | See if today's run worked | Jobs & Pipelines → the job → Runs. Failed runs also email `notify_email`. |
 | Change search terms, sources or priority keywords | in the app: **Settings** (top right) → **Sources**, **L1 keywords** or **L3 priority keywords** → Save. The next run uses them; to apply now, `databricks bundle run lit_surv_daily`. Each Save adds a row to the settings table, so it is also the history of changes. To start again from `terms.csv`, empty that table (`DELETE FROM medical_prod.apps.literature_surveillance_settings`); the next run saves `terms.csv` as the first settings again. |
+| Change an L3 reason or push-down rule (its points, keywords, or switch it off) | in the SQL editor, e.g. `UPDATE medical_prod.apps.literature_surveillance_intents SET weight = 80 WHERE intent_id = 'seb_derm'` (or `SET active = false`). The next run scores with it and Settings → L3 lists it. To start again from the list in `surveillance.py` (`L3_INTENTS`, `L3_PUSH_DOWN`), run `ci_mails/build_tables.py` |
+| Add the articles of new Articles of Interest emails | save the emails as PDF to `/Volumes/medical_prod/apps/ci_mails`, then run the `ci_mails` steps (`ci_mails/README.md`); the next run puts them on the accepted feed |
 | See what each run searched and found | `SELECT * FROM medical_prod.apps.literature_surveillance_runs ORDER BY run_at DESC` |
 | Change exclusion rules | edit `exclusions.csv` → `databricks bundle deploy`. The next run uses them; to apply now, `databricks bundle run lit_surv_daily`. |
 | Change the code or the page template (`app/template.html`) | edit, run `python tests\test_offline.py`, then `databricks bundle deploy`, plus `databricks bundle run lit_surv_app` for the template |
 | Change the app | edit `app/` → `databricks bundle deploy` → `databricks bundle run lit_surv_app` |
 | Pause the daily run | job page → **Schedules & Triggers** → Pause (or set `pause_status: PAUSED` and deploy) |
 | Stop paying for the app while unused | `databricks apps stop literature-surveillance`; start again with `databricks bundle run lit_surv_app` |
+
+### Upgrading a deployment made before the L3 score (November 2026)
+
+Priority is now the L3 score (Must read, Of interest, FYI, Low) instead of High / Medium / Check / Low, and Must
+read articles and those sent in Articles of Interest emails go to the accepted feed by themselves. Once:
+
+1. In the SQL editor, add the runs table's new column (the last statement in `tables.sql`, commented out):
+   `ALTER TABLE medical_prod.apps.literature_surveillance_runs ADD COLUMNS (l3_rules STRING)`. Without it the
+   job still runs, but Settings → L3 cannot list the reasons.
+2. `cd ci_mails` and `python build_tables.py`: creates and fills `_intents` and `_ci_articles`.
+3. `databricks bundle deploy`, then `databricks bundle run lit_surv_daily` (rescores every article and adds the
+   emailed ones) and `databricks bundle run lit_surv_app`.
+
+Decisions already saved keep working: a reviewer's decision always wins over the automatic ones.
 
 **Costs:** the job uses serverless compute for a few minutes a day. An app bills for every hour it is
 running, whether or not anyone looks at it. Ask your admin what that costs in your workspace.

@@ -13,7 +13,10 @@ Re-running only fetches new articles; articles already in the store are kept. Re
 in data/decisions.csv (pmid,decision: accepted / ignored / restored) set which feed an article is on;
 its optional reasons column (the keywords and reasons ticked, separated by ';') is shown on the page.
 Search terms and sources saved from the page's Settings (data/settings.json) replace terms.csv and the
-default --sources / --scholar-pages; its L3 priority keywords make the articles that mention them High priority.
+default --sources / --scholar-pages. Priority is the L3 score: the L3 reasons (L3_INTENTS, learned from the Articles
+of Interest emails) and the L3 keywords saved in Settings rank each article Must read, Of interest, FYI or Low. Must
+read articles, and articles sent in an Articles of Interest email (data/ci_articles.json, or the _ci_articles table
+that ci_mails/build_tables.py writes), are on the accepted feed unless a reviewer decided otherwise.
 
 Google Scholar has no public API, so it is queried through SerpApi and skipped when no SerpApi key
 is given. As a Databricks job, keys come from a secret scope (--secret-scope), and with --tables the store,
@@ -47,7 +50,8 @@ from page import TEMPLATE, fill as fill_page, header as page_header  # noqa: E40
 EUTILS = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
 OPENALEX = "https://api.openalex.org/"
 SERPAPI = "https://serpapi.com/search.json"
-SOURCES = ["PubMed", "OpenAlex", "Google Scholar"]     # also the preference order for metadata when records merge
+SOURCES = ["PubMed", "OpenAlex", "Google Scholar", "Email"]   # also the preference order for metadata when records merge
+#                                                         ('Email': an Articles of Interest email cited it, the search did not find it)
 SOURCE_IDS = ["pubmed", "openalex", "scholar"]           # the same sources as named in --sources and settings.json
 TERM_FIELDS = ["term", "product_category", "pubmed_query", "openalex_query", "scholar_query"]
 SCHOLAR_FIELDS = ("scholar_id", "scholar_link", "scholar_snippet", "scholar_via")
@@ -137,6 +141,250 @@ KEYWORDS = {  # label → pattern in the title or abstract; the page offers them
     "Itch": r"\b(prurit\w*|itch\w*)\b",
     "Quality of life": r"\b(quality.of.life|C?DLQI)\b",
 }
+
+# L3 priority: why Medical Affairs sends an article, learned from the INFORM Articles of Interest emails (ci_mails/).
+# A reason matches when every one of its keyword groups has a keyword in its field (the title, or the title and
+# abstract) and none of its none_of words is in the title. Keywords match like the L3 keywords saved in Settings:
+# case and punctuation ignored, each word a prefix ('steroid' finds 'steroids', 'child' finds 'children'). An
+# article's L3 score is the points of its best reason plus 5 for each further reason (at most 15 more), minus the
+# points of the push-down rules that fire. With --tables, the <prefix>_intents table replaces these lists when it
+# exists (ci_mails/build_tables.py writes it from them, with each reason's backtest evidence).
+ROF = ["roflumilast", "zoryve", "arq 151", "arq 154", "arq 255"]
+COMPETITORS = ["tapinarof", "benvitimod", "vtama", "ruxolitinib cream", "topical ruxolitinib", "ruxolitinib 1 5",
+               "opzelura", "delgocitinib", "anzupgo", "crisaborole", "difamilast", "orismilast"]
+TOPICAL_NS = ROF + COMPETITORS + ["ruxolitinib", "roxulitinib"]
+STEROID = ["topical corticosteroid", "topical steroid", "topical glucocorticoid", "corticosteroid", "glucocorticoid", "steroid",
+           "tcs", "clobetasol", "betamethasone", "hydrocortisone", "mometasone", "triamcinolone", "fluocinonide", "desonide"]
+CORE_DISEASE_WORDS = ["atopic", "eczema", "psoriasis", "psoriatic lesion", "plaque psoria", "seborrh", "hand dermatitis"]
+DISEASE_WORDS = ["atopic", "eczema", "psoria", "seborrh", "dermatitis"]
+TOPICAL_CONTEXT = ["topical", "nonsteroidal", "non steroidal", "cream", "ointment", "foam"] + TOPICAL_NS + STEROID[:6]
+LAB = ["mice", "mouse", "murine", "rats", "in vitro", "in silico", "docking", "nano", "ethosom", "niosom", "liposom",
+       "hydrogel", "microneedle", "emulgel"]
+
+L3_INTENTS = [  # reasons to read, most important first; groups = [(field, keywords)], every group must match
+    dict(intent_id="own_product", intent="Own product: topical roflumilast", weight=100,
+         why="New data on topical roflumilast (cream or foam): case reports in new indications (lichen sclerosus, "
+             "bullous pemphigoid, Darier, morphea, scarring alopecia), real-world and combination use, safety and "
+             "pharmacovigilance, meta-analyses. Every one led its email; case reports go into the case report "
+             "bibliography.",
+         groups=[("title", ROF)],
+         none_of=["copd", "chronic obstructive", "asthma", "pulmonary"] + LAB),
+    dict(intent_id="own_product_mention", intent="Roflumilast discussed in a broader article", weight=65,
+         why="Reviews, consensus papers and comparisons whose abstract discusses roflumilast. The reviewer quotes how "
+             "roflumilast is positioned next to competitors, including statements to correct.",
+         groups=[("title_abstract", ROF), ("title", DISEASE_WORDS + ["topical", "nonsteroidal", "non steroidal", "pde4",
+                                                                  "phosphodiesterase", "skin", "dermatolog"])],
+         none_of=["copd", "asthma", "pulmonary"] + LAB),
+    dict(intent_id="comparative", intent="Comparative evidence across topical non-steroidals", weight=85,
+         why="Network meta-analyses, indirect comparisons and side-by-side safety reviews that rank roflumilast against "
+             "tapinarof, ruxolitinib, delgocitinib or crisaborole. These need a response (the scalp NMA and the "
+             "pediatric NMA were sent to Brett for comment).",
+         groups=[("title", ["network meta", "indirect comparison", "matching adjusted", "head to head", "versus", "vs",
+                            "compared", "comparative", "comparison", "relative efficacy", "model based meta"]),
+                 ("title_abstract", TOPICAL_NS + ["nonsteroidal", "non steroidal"])],
+         none_of=["graft", "gvhd", "vitiligo", "alopecia"]),
+    dict(intent_id="guidelines", intent="Guidelines, consensus and position statements", weight=85,
+         why="Guidelines, expert consensus, Delphi panels and position statements decide where topicals sit in the "
+             "treatment algorithm (AAD pediatric AD guideline, NPF severity definitions, CHE and topical non-steroidal "
+             "consensus, AhR consensus, genital psoriasis Delphi).",
+         groups=[("title", ["guideline", "consensus", "position statement", "position paper", "recommendation",
+                            "delphi", "expert panel", "yardstick", "good practice", "practice parameter", "statement paper",
+                            "drugs for", "comparison chart"]),
+                 ("title", CORE_DISEASE_WORDS + ["topical", "nonsteroidal", "aryl hydrocarbon"])],
+         none_of=["alopecia", "hidradenitis", "prurigo", "arthritis", "arthropathica", "graft", "canine", "lupus",
+                  "minoxidil", "nemolizumab", "lebrikizumab", "dupilumab"]),
+    dict(intent_id="competitor_safety", intent="Competitor safety signal", weight=80,
+         why="New adverse-event reports for competing topicals (tapinarof folliculitis, comedones and contact allergy; "
+             "ruxolitinib eczema herpeticum; FAERS analyses; maximal-use exposure). Used in safety and differentiation "
+             "conversations.",
+         groups=[("title", COMPETITORS + ["ruxolitinib"]),
+                 ("title", ["adverse", "safety", "folliculitis", "contact dermatitis", "contact allergen", "allergic",
+                            "comedo", "herpeticum", "pharmacovigilance", "adverse event reporting", "induced",
+                            "hyperpigmentation", "acne", "infection", "boxed warning", "malignan", "patch test",
+                            "systemic exposure", "tolerability"])],
+         none_of=["vitiligo", "graft", "myelofibrosis", "efficacy", "effectiveness"]),
+    dict(intent_id="tcs_harm", intent="Topical steroid harms", weight=80,
+         why="Evidence of harm from topical corticosteroids: Cushing syndrome and HPA suppression in infants, type 2 "
+             "diabetes risk, central serous retinopathy, raised eye pressure, barrier damage, allergens in formulations, "
+             "tinea incognito. Supports non-steroidal first-line and maintenance use.",
+         groups=[("title", STEROID),
+                 ("title", ["cushing", "adrenal", "hpa axis", "hypothalamic", "diabetes", "retinopathy", "chorioretinopathy",
+                            "serous", "intraocular", "glaucoma", "cataract", "ocular", "osteoporosis", "fracture",
+                            "iatrogenic", "toxicity", "barrier function", "atrophy", "striae", "allergen", "contact allergy",
+                            "adverse event", "adverse effect", "side effect", "tinea incognito", "backfire",
+                            "perioral dermatitis", "risk of", "burden", "misuse", "overuse", "induced"])],
+         none_of=["graft", "gvhd", "canine", "rabbit"]),
+    dict(intent_id="tsw", intent="Topical steroid withdrawal (TSW)", weight=75,
+         why="Reviews, case series and diagnostic work on topical steroid withdrawal. The reviewer sent the treatment "
+             "update, the NIH 'dissecting the controversy' review and the updated systematic review; they serve as "
+             "references for TSW conversations.",
+         groups=[("title", ["topical steroid withdrawal", "topical corticosteroid withdrawal", "steroid withdrawal",
+                            "corticosteroid withdrawal", "tsw", "tcsw", "red skin syndrome", "steroid addiction"])]),
+    dict(intent_id="tcs_practice", intent="Topical steroid use patterns and stewardship", weight=60,
+         why="How TCS are actually prescribed (potency escalation, quantities, response definitions, primary-care "
+             "management). Context for where non-steroidals fit and for education programs.",
+         groups=[("title", STEROID),
+                 ("title", ["potency", "quantit", "fingertip", "prescrib", "inadequate response", "definition of response",
+                            "escalation", "stewardship", "primary care", "initial management", "treatment pattern"])]),
+    dict(intent_id="seb_derm", intent="Seborrheic dermatitis: disease and treatment paradigm", weight=75,
+         why="Roflumilast foam is approved for seborrheic dermatitis. Almost every SD article was sent: burden and "
+             "psychiatric comorbidity, diagnostic criteria, mechanisms, antifungal stewardship, consensus, pipeline.",
+         groups=[("title", ["seborrh", "antifungal stewardship", "antifungal therapy", "antifungal resistance",
+                            "malassezia"])],
+         none_of=["keratos"]),
+    dict(intent_id="pde4_class", intent="PDE4 inhibitor class: mechanism and pipeline", weight=70,
+         why="PDE4 inhibition in skin (mechanism beyond inflammation, orismilast chemistry, oral roflumilast in AD, "
+             "the PDE4 landscape, apremilast combinations). It is roflumilast's class.",
+         groups=[("title", ["pde4", "pde 4", "phosphodiesterase", "orismilast", "difamilast", "apremilast"])],
+         none_of=["copd", "asthma", "pulmonary"] + LAB),
+    dict(intent_id="combination", intent="Topicals combined with systemic, biologic or device therapy", weight=70,
+         why="Adding a topical non-steroidal to a biologic, oral therapy or laser/phototherapy for residual disease "
+             "(tapinarof added to biologics, roflumilast on dupilumab, tapinarof with apremilast or NB-UVB).",
+         groups=[("title", ["dupilumab", "biologic", "apremilast", "tralokinumab", "nemolizumab", "lebrikizumab",
+                            "ustekinumab", "systemic", "laser", "phototherapy", "narrowband", "ultraviolet"]),
+                 ("title", ["add", "adjunct", "combination", "combined", "residual", "concomitant", "ongoing", "during",
+                            "with"]),
+                 ("title_abstract", TOPICAL_NS)]),
+    dict(intent_id="landscape", intent="Topical non-steroidal treatment landscape reviews", weight=65,
+         why="Reviews of the topical options. The reviewer reads them for how roflumilast is described next to "
+             "competitors and quotes the lines that help or hurt it.",
+         groups=[("title", ["nonsteroidal", "non steroidal", "steroid sparing", "steroid free", "topical therap",
+                            "topical treatment", "topical agent", "topicals", "topical option", "topical targeted",
+                            "targeted topical", "emerging topical", "novel topical", "topical prescription",
+                            "end of the steroid era", "new paradigm", "therapeutic landscape", "therapeutic update",
+                            "current therapeutics", "novel treatments", "practical considerations", "what is new"]),
+                 ("title_abstract", DISEASE_WORDS + ["topical"])],
+         none_of=["graft", "canine", "acne", "rosacea"]),
+    dict(intent_id="competitor_evidence", intent="Competitor clinical and real-world evidence", weight=70,
+         why="Trials, long-term extensions, pooled analyses and real-world studies of tapinarof, topical ruxolitinib "
+             "and delgocitinib (TRuE-AD4, DELTA TEEN, delgocitinib in AD, tapinarof in Japanese children, ruxolitinib "
+             "claims analyses).",
+         groups=[("title", COMPETITORS + ["ruxolitinib"]),
+                 ("title", ["trial", "phase", "randomi", "real world", "real life", "retrospective", "cohort", "claims",
+                            "open label", "long term", "pooled", "post hoc", "meta analysis", "systematic review",
+                            "registry", "observational", "extension", "maximal use", "dose", "adolescent", "pediatric",
+                            "paediatric", "children", "effectiveness", "versus", "monotherapy", "as needed"])],
+         none_of=["vitiligo", "graft", "gvhd", "myelofibrosis", "alopecia"]),
+    dict(intent_id="access_heor", intent="Market access, cost and utilization", weight=65,
+         why="Claims, Medicare/Medicaid, payer and cost analyses of topicals and AD care (ruxolitinib Part D growth, "
+             "insurance type and non-steroidal use, budget impact, pediatric pharmacy costs).",
+         groups=[("title", ["claims", "medicare", "medicaid", "insurance", "payer", "managed care", "prior authorization",
+                            "step therapy", "cost", "budget impact", "economic", "utilization", "utilisation",
+                            "prescribing", "treatment pattern", "healthcare resource", "formulary", "pharmacy", "market"]),
+                 ("title", CORE_DISEASE_WORDS + TOPICAL_NS + ["topical", "nonsteroidal", "dermatitis"])],
+         none_of=["vitiligo", "alopecia", "graft"]),
+    dict(intent_id="formulation", intent="Formulation, vehicle and excipient allergens", weight=65,
+         why="Vehicles, excipients and contact allergens in topicals (parabens in roflumilast cream, allergens in TCS "
+             "formulations, tapinarof as a contact allergen, vehicle formulation of non-steroidal creams).",
+         groups=[("title", ["vehicle formulation", "excipient", "inactive ingredient", "paraben", "allergen",
+                            "contact allergy", "allergic contact", "patch test", "lipid membrane"]),
+                 ("title_abstract", ["topical", "cream", "ointment", "foam"] + TOPICAL_NS)]),
+    dict(intent_id="jak_class_safety", intent="JAK inhibitor class safety", weight=55,
+         why="Infection, cardiovascular and malignancy risk across JAK inhibitors, including how topical exposure is "
+             "separated from oral (boxed-warning context for topical ruxolitinib and delgocitinib).",
+         groups=[("title", ["jak", "janus kinase"]),
+                 ("title", ["safety", "infection", "malignan", "cardiovascular", "thrombo", "risk", "adverse"])],
+         none_of=["graft", "myelofibrosis", "alopecia", "vitiligo", "rheumatoid", "ulcerative", "crohn"]),
+    dict(intent_id="special_sites", intent="High-impact or special body sites", weight=55,
+         why="Genital, intertriginous, scalp, face, nail and palmoplantar disease and severity definitions that count "
+             "these sites. Roflumilast is labelled for intertriginous use, so special-site data matters.",
+         groups=[("title", ["genital", "intertrigin", "inverse psoria", "scalp", "nail", "facial", "face", "eyelid",
+                            "high impact", "severity", "special site", "palmoplantar", "plantar", "perioral",
+                            "periorificial"]),
+                 ("title", ["psoria", "atopic", "eczema", "dermatitis"]),
+                 ("title_abstract", TOPICAL_CONTEXT)],
+         none_of=["vitiligo", "alopecia", "lebrikizumab", "dupilumab", "homoeopath", "homeopath"]),
+    dict(intent_id="pediatric", intent="Pediatric and infant topical treatment", weight=55,
+         why="Children and infants with AD or psoriasis treated topically (guidelines, treatment patterns, emerging "
+             "topicals). Roflumilast is approved down to age 2 with trials from 3 months.",
+         groups=[("title", ["pediatric", "paediatric", "children", "child", "childhood", "infant", "toddler", "adolescent"]),
+                 ("title_abstract", ["atopic", "eczema", "psoria", "seborrh"]),
+                 ("title_abstract", TOPICAL_CONTEXT)],
+         none_of=["alopecia", "vitiligo", "dupilumab", "lebrikizumab", "tralokinumab", "upadacitinib", "food"]),
+    dict(intent_id="patient_burden", intent="Patient burden, preferences and adherence", weight=50,
+         why="Quality of life, psychiatric comorbidity, itch and sleep burden, adherence, patient preferences and "
+             "uncontrolled disease. Supports unmet-need and patient-centred messaging.",
+         groups=[("title", ["quality of life", "burden", "adherence", "preference", "patient reported", "patient experience",
+                            "patient perspective", "qualitative", "psychiatric", "depression", "anxiety", "caregiver",
+                            "discrete choice", "stigma", "uncontrolled", "inadequate disease control", "unmet need",
+                            "treatment goal", "thresholds", "comorbidit", "outcome measure"]),
+                 ("title", ["atopic", "eczema", "psoria", "seborrh", "hand eczema"])],
+         none_of=["dupilumab", "lebrikizumab", "nemolizumab", "tralokinumab", "biologic"]),
+    dict(intent_id="off_label_case", intent="Off-label use of topical non-steroidals (case reports)", weight=50,
+         why="Case reports and series of tapinarof, topical ruxolitinib or delgocitinib in other diseases (lichen planus, "
+             "Hailey-Hailey, rosacea, lichen sclerosus, Darier). Usually listed as FYI; shows where competitors are "
+             "expanding.",
+         groups=[("title", COMPETITORS + ["ruxolitinib", "roxulitinib"]),
+                 ("title", ["case", "for", "treated", "treatment", "successful", "improvement", "clearance", "response",
+                            "refractory", "recalcitrant", "managed", "in a patient"])],
+         none_of=["graft", "gvhd", "myelofibrosis", "transplant", "vitiligo"]),
+    dict(intent_id="hand_eczema", intent="Chronic hand eczema", weight=50,
+         why="Chronic hand eczema treatment and burden. Delgocitinib is approved here, so it is a competitive space.",
+         groups=[("title", ["hand eczema", "hand dermatitis", "hand foot"])],
+         none_of=["dupilumab", "upadacitinib", "abrocitinib", "alitretinoin"]),
+    dict(intent_id="pregnancy", intent="Pregnancy and lactation", weight=50,
+         why="Use of topicals in pregnancy and the postpartum period (lack of human data for roflumilast and tapinarof).",
+         groups=[("title", ["pregnan", "postpartum", "lactat", "breastfeed"]),
+                 ("title_abstract", TOPICAL_CONTEXT)]),
+    dict(intent_id="pipeline", intent="Pipeline and investigational agents", weight=50,
+         why="Investigational agents and early-phase programs (rosacea and HS pipelines that include roflumilast, "
+             "TAP-1502, new topical classes).",
+         groups=[("title", ["investigational", "pipeline", "emerging drugs", "emerging synthetic", "early investigational",
+                            "first in class", "new drug", "recent advances"]),
+                 ("title_abstract", DISEASE_WORDS + ["rosacea", "hidradenitis", "topical"])]),
+]
+L3_PUSH_DOWN = [  # what the reviewer did not send although L1 found it; weight = points taken off
+    dict(intent_id="congress_abstract", intent="Congress abstract (numbered title)", weight=-40,
+         why="Meeting abstracts were never sent; posters reach the team through congress coverage.",
+         title_regex=r"^\s*([A-Z]{0,3}\d{2,6}(-\d+)?|[A-Z]{1,3}\d{2,4}-\d{2})\s*\|?\s+\S"),
+    dict(intent_id="arcutis_trial_pub", intent="Arcutis pivotal-trial publication", weight=-40,
+         why="INTEGUMENT, DERMIS, ARRECTOR and STRATUM papers and their plain-language summaries are Arcutis's own "
+             "publications, known to the team before they appear; none were sent.",
+         title_regex=r"\b(integument|dermis-?[12]|arrector|stratum clinical|plain language summary)\b|"
+                     r"^(?!.*game changer).*(roflumilast.*\b(subgroup|post.hoc|pooled|proactive|bridging|integrated analys)"
+                     r"|\b(subgroup|post.hoc|pooled)\b.*roflumilast)"),
+    dict(intent_id="arcutis_funded", intent="Arcutis-funded work", weight=-35,
+         why="Posters, encore abstracts and analyses funded by Arcutis or written by its employees reach the team "
+             "internally; none was sent, while independent roflumilast reports always were. Arcutis-supported expert "
+             "consensus papers are the exception (the genital psoriasis Delphi was sent with congratulations).",
+         text_regex=r"(funded|supported|sponsored|financial support)\W+(\w+\W+){0,6}?arcutis|"
+                    r"(employee[s]?|employed)\W+(\w+\W+){0,6}?arcutis|arcutis\W+(\w+\W+){0,3}?(funded|sponsored|employee)",
+         unless_regex=r"\b(consensus|delphi|guidelines?|position (statement|paper)|recommendations?)\b"),
+    dict(intent_id="oral_jak_other", intent="Oral/systemic JAK inhibitor or non-dermatology JAK use", weight=-40,
+         why="Oral JAK inhibitor studies (alopecia areata, vitiligo, lupus, dermatomyositis, GVHD, myelofibrosis) "
+             "dominate the ruxolitinib and topical-JAK terms but were not sent unless a topical was the subject.",
+         title_regex=r"\b(oral|tofacitinib|baricitinib|upadacitinib|abrocitinib|ritlecitinib|deuruxolitinib|"
+                     r"deucravacitinib|graft|gvhd|myelofibrosis|myeloproliferative|polycythemia|transplant\w*|"
+                     r"dermatomyositis|candle|down syndrome|hemophagocytic)\b",
+         unless_regex=r"\b(cream|topical)\b"),
+    dict(intent_id="vitiligo_alopecia", intent="Vitiligo or alopecia areata (no Arcutis indication)", weight=-25,
+         why="Ruxolitinib-in-vitiligo and JAK-in-alopecia-areata papers were not sent; roflumilast in vitiligo was.",
+         title_regex=r"\b(vitiligo|alopecia areata|repigmentation)\b",
+         unless_regex=r"\b(roflumilast|atopic|psoria\w*|seborrh\w*|eczema)\b"),
+    dict(intent_id="preclinical", intent="Preclinical, formulation-lab or veterinary study", weight=-30,
+         why="Animal, cell and drug-delivery studies were rarely sent (two exceptions, both PDE4/tapinarof chemistry).",
+         title_regex=r"\b(mice|mouse|murine|rats?|rabbits?|in vitro|in silico|cell lines?|nano\w*|\w*ethosom\w*|"
+                     r"\w*niosom\w*|liposom\w*|hydrogel|microneedle|emulgel|docking|zebrafish|canine|dogs?|cats?|"
+                     r"veterinar\w*|keratinocytes?|co-culture|formulation and evaluation|formulation development|"
+                     r"box.behnken|hplc|method development|derivatives|structural modification)\b"),
+    dict(intent_id="tcs_phobia_media", intent="Steroid phobia or social-media discourse", weight=-25,
+         why="TCS phobia scores, social-media and terminology papers on TSW were not sent; clinical TSW reviews were.",
+         title_regex=r"\b(phobia|tiktok|youtube|social media|social-media|influencer|online content|sick role|"
+                     r"narrative analysis|terminology|misinformation|discourse|large language model|chatgpt)\b"),
+    dict(intent_id="non_english", intent="Not in English", weight=-30,
+         why="Non-English articles were not sent.",
+         title_regex=r"^\s*\[|[áéíóúñçãõâêôàèùäöüß¿¡]|\b(chez|atteints|del|las|los|bei|und|mit|der|die|em|para)\b"),
+    dict(intent_id="book_or_preprint", intent="Book chapter, drug monograph or preprint", weight=-40,
+         why="StatPearls/CADTH chapters, drug-information Q&A pages and preprints were not sent.",
+         title_regex=r"^\s*(what (is|are) the|which|how (should|do)|in a \d+.year.old)\b|supplementary data|"
+                     r"\((zoryve|vtama|opzelura|anzupgo|nemluvio|ebglyss|eucrisa)\)",
+         study_types=["Book chapter", "Preprint"]),
+]
+L3_RULE_FIELDS = ("intent_id", "kind", "intent", "weight", "why", "keyword_groups", "none_of", "title_regex", "text_regex",
+                  "study_types", "unless_regex")
+L3_BANDS = ((85, "Must read"), (60, "Of interest"), (40, "FYI"), (0, "Low"))   # the priorities, by lowest score
+AUTO_ACCEPT_BAND = "Must read"                         # on the accepted feed without a reviewer decision
+OWN_KEYWORD_POINTS = 60                                # an L3 keyword saved in Settings counts as a reason worth this
 
 
 # ----------------------------------------------------------------------------- queries
@@ -602,14 +850,16 @@ class Index:
 
 
 def record_key(a: dict) -> str:
-    """The store key: the PMID for PubMed records, otherwise a prefixed DOI, OpenAlex id or Scholar id."""
+    """The store key: the PMID for PubMed records, otherwise a prefixed DOI, OpenAlex id, Scholar id, or for an article
+    known only from an Articles of Interest email, a hash of its title."""
     if a["origin"] == "PubMed":
         return a["pmid"]
     if norm_doi(a.get("doi")):
         return "doi:" + norm_doi(a["doi"])
     if a.get("openalex_id"):
         return "openalex:" + a["openalex_id"]
-    return "scholar:" + (a.get("scholar_id") or hashlib.sha1(title_key(a["title"]).encode()).hexdigest()[:12])
+    prefix = "email:" if a["origin"] == "Email" else "scholar:"
+    return prefix + (a.get("scholar_id") or hashlib.sha1(title_key(a["title"]).encode()).hexdigest()[:12])
 
 
 def sort_sources(names) -> list[str]:
@@ -822,22 +1072,76 @@ def format_note(a: dict) -> str:
     return " ".join(n + "." for n in notes)
 
 
-def priority(product, study, access, rule, l3=()):
-    if rule:
-        return "Low"
-    if l3:                                             # an L3 priority keyword is in the title or abstract
-        return "High"
-    if access == "Title only":
-        return "Check"
-    if study in ("Preclinical",):
-        return "Medium" if product == "Roflumilast" else "Low"
-    if product == "Roflumilast":
-        return "High"
-    if product == "Competitor" and study in ("Phase 3", "Phase 2", "RCT", "Real-world", "Meta-analysis"):
-        return "High"
-    if study in ("Preclinical", "Letter", "Editorial"):
-        return "Low"
-    return "Medium"
+def default_l3_rules() -> list[dict]:
+    """L3_INTENTS and L3_PUSH_DOWN as rows of the <prefix>_intents table, the shape l3_score() reads."""
+    rows = [dict(intent_id=r["intent_id"], kind="intent", intent=r["intent"], weight=r["weight"], why=r["why"],
+                 keyword_groups=[dict(field=f, keywords=ks) for f, ks in r["groups"]], none_of=r.get("none_of") or [])
+            for r in L3_INTENTS]
+    rows += [dict(r, kind="deprioritise") for r in L3_PUSH_DOWN]
+    return [{k: r.get(k) for k in L3_RULE_FIELDS} for r in rows]
+
+
+DEFAULT_L3_RULES = default_l3_rules()
+
+
+def l3_text(text: str | None) -> str:
+    """Lower-case letters and digits, one space between words: the text L3 reasons look for their keywords in."""
+    return " ".join(re.findall(r"[a-z0-9]+", (text or "").lower()))
+
+
+L3_PATTERNS: dict[str, re.Pattern | None] = {}
+
+
+def l3_find(keywords, text: str) -> str | None:
+    """The first keyword found in text (from l3_text): its words in order, each one a prefix of a word there."""
+    for k in keywords or ():
+        if k not in L3_PATTERNS:
+            ws = re.findall(r"[a-z0-9]+", k.lower())
+            L3_PATTERNS[k] = re.compile(r"\b" + r"\w*\s".join(map(re.escape, ws))) if ws else None
+        if L3_PATTERNS[k] and L3_PATTERNS[k].search(text):
+            return k
+    return None
+
+
+def l3_score(rules, title: str, abstract: str | None, study_type: str | None = None, text: str = "",
+             own=()) -> tuple[int, list[dict], list[dict]]:
+    """(L3 score, the reasons matched with the keyword that met each group, best first, the push-down rules that fired).
+    `text` is read by push-down rules besides the abstract (the conflict-of-interest statement and funders); `own` are
+    the L3 keywords from Settings found in the article, which count as one reason worth OWN_KEYWORD_POINTS."""
+    t, ta = l3_text(title), l3_text(f"{title} {abstract or ''}")
+    hits, pushed = [], []
+    for r in rules:
+        if r["kind"] == "intent":
+            if l3_find(r.get("none_of"), t):
+                continue
+            found = [l3_find(g["keywords"], t if g["field"] == "title" else ta) for g in r["keyword_groups"]]
+            if all(found):
+                hits.append(dict(id=r["intent_id"], intent=r["intent"], points=r["weight"], keywords=found))
+        elif ((r.get("title_regex") and re.search(r["title_regex"], title or "", re.I))
+              or (study_type and study_type in (r.get("study_types") or ()))
+              or (r.get("text_regex") and re.search(r["text_regex"], f"{abstract or ''} {text}", re.I))) \
+                and not (r.get("unless_regex") and re.search(r["unless_regex"], title or "", re.I)):
+            pushed.append(dict(id=r["intent_id"], rule=r["intent"], points=r["weight"]))
+    if own:
+        hits.append(dict(id="own_keywords", intent="Your L3 keywords", points=OWN_KEYWORD_POINTS, keywords=list(own)))
+    hits.sort(key=lambda h: -h["points"])              # stable: ties keep the order of the rules
+    base = hits[0]["points"] + min(15, 5 * (len(hits) - 1)) if hits else 0
+    return max(0, base + sum(p["points"] for p in pushed)), hits, pushed
+
+
+def l3_band(score: int) -> str:
+    return next(band for low, band in L3_BANDS if score >= low)
+
+
+def auto_accept(a: dict) -> str | None:
+    """Why the article is on the accepted feed when no reviewer has decided: it was sent in an Articles of Interest
+    email (whatever the exclusion rules say), or its L3 score is Must read and no exclusion rule fired."""
+    if a.get("emailed"):
+        sent = date.fromisoformat(a["emailed"]["date"])
+        return f"Sent in the Articles of Interest email of {sent.day} {sent:%b %Y}"
+    if not a.get("rule") and a.get("priority") == AUTO_ACCEPT_BAND:
+        return f"{AUTO_ACCEPT_BAND}: {a['l3_intents'][0]['intent']}"
+    return None
 
 
 # ----------------------------------------------------------------------------- summaries (no LLM)
@@ -911,7 +1215,7 @@ def positioning(a: dict) -> str:
 
 
 # ----------------------------------------------------------------------------- build
-def enrich(a: dict, term_cat: dict, rules, term_query: dict | None = None, l3_keywords=()) -> dict:
+def enrich(a: dict, term_cat: dict, rules, term_query: dict | None = None, l3_keywords=(), l3_rules=None) -> dict:
     text = f"{a['title']} {a.get('abstract') or ''} {' '.join(a.get('mesh') or [])}"
     a["disease"] = tag_disease(text)
     cats = {term_cat.get(t, "Class") for t in a["matched_terms"]}
@@ -936,19 +1240,26 @@ def enrich(a: dict, term_cat: dict, rules, term_query: dict | None = None, l3_ke
         a["rule"] = "Term only in full text (Google Scholar)"
     a["format_note"] = format_note(a)
     a["l3_keywords"] = match_l3(l3_keywords, a["title"], a.get("abstract"))
-    a["priority"] = priority(a["product"], a["study_type"], a["access"], a["rule"], a["l3_keywords"])
+    a["l3_score"], a["l3_intents"], a["l3_push_down"] = l3_score(
+        DEFAULT_L3_RULES if l3_rules is None else l3_rules, a["title"], a.get("abstract"), a["study_type"],
+        f"{a.get('coi') or ''} {' '.join(a.get('grants') or [])}", a["l3_keywords"])
+    a["priority"] = "Low" if a["rule"] else l3_band(a["l3_score"])
+    a["auto_accept"] = auto_accept(a)
     a["summary"], a["points"], a["why"] = summarise(a, a["access"])
     return a
 
 
-def page_status(rule: str | None, decision: str | None) -> str:
-    """The feed an article is on: 'review', 'accepted' or 'ignored'. A reviewer's decision wins over the
-    exclusion rules; 'restored' sends an article a rule ignored back to review. Same logic as statusOf() in the page."""
+def page_status(rule: str | None, decision: str | None, auto: str | None = None) -> str:
+    """The feed an article is on: 'review', 'accepted' or 'ignored'. A reviewer's decision wins over the automatic
+    ones: `auto` (auto_accept()) accepts, an exclusion rule ignores, and 'restored' sends such an article back to
+    review. Same logic as statusOf() in the page."""
     if decision == "accepted":
         return "accepted"
     if decision in ("ignored", "removed"):           # 'removed' is the older name for 'ignored'
         return "ignored"
-    return "ignored" if rule and decision != "restored" else "review"
+    if decision == "restored":
+        return "review"
+    return "accepted" if auto else "ignored" if rule else "review"
 
 
 def split_reasons(text: str | None) -> list[str]:
@@ -963,7 +1274,7 @@ def to_page_row(a: dict, decision: str | None, key: str | None = None, reasons=(
     year = a["pub_date"][:4]
     origin = a.get("origin", "PubMed")
     via = {"PubMed": "PubMed" + (" (PMC full text)" if a.get("pmc") else ""), "OpenAlex": "OpenAlex",
-           "Google Scholar": a.get("scholar_via") or "Google Scholar"}[origin]
+           "Google Scholar": a.get("scholar_via") or "Google Scholar", "Email": a.get("journal") or "Email"}[origin]
     links = article_links(a)
     return dict(
         id=key or a["pmid"], title=a["title"],
@@ -972,8 +1283,9 @@ def to_page_row(a: dict, decision: str | None, key: str | None = None, reasons=(
         src=", ".join(a.get("sources") or [origin]), via=via,
         term=", ".join(a["matched_terms"]), dz=a["disease"], product=a["product"], type=a["study_type"],
         intent=a["intent"], intent_why=a["intent_why"], access=a["access"], prio=a["priority"], l3=a["l3_keywords"], sponsor=a["sponsor"],
+        score=a["l3_score"], l3i=a["l3_intents"], pen=a["l3_push_down"], auto=a["auto_accept"], emailed=a.get("emailed"),
         link=links[0]["url"] if links else "", links=links,
-        summary=a["summary"], points=a["points"], why=a["why"], status=page_status(a["rule"], decision),
+        summary=a["summary"], points=a["points"], why=a["why"], status=page_status(a["rule"], decision, a["auto_accept"]),
         rule=a["rule"], note=note, pub_date=a["pub_date"], decision=decision, keywords=a.get("keywords") or [],
         reasons=list(reasons) if decision in ("accepted", "ignored") else [],
     )
@@ -999,6 +1311,28 @@ def article_links(a: dict) -> list[dict]:
     for link in out:                                   # the same URL can come from two sources; keep the first label
         unique.setdefault(link["url"], link)
     return list(unique.values())
+
+
+EMAILED_FIELDS = ("email_date", "email_subject", "tier", "reviewer_note", "record")   # read from _ci_articles
+
+
+def add_emailed(store: dict, idx: Index, rows) -> int:
+    """Marks the articles sent in Articles of Interest emails (rows of _ci_articles, each carrying the article's record
+    as JSON) with the first email that sent them. An article the search never found is added to the store, with
+    'Email' as its source. Returns how many were added."""
+    for a in store.values():
+        a.pop("emailed", None)
+    added = 0
+    for row in sorted(rows, key=lambda r: str(r["email_date"])):
+        rec = json.loads(row["record"]) if row.get("record") else None
+        if not rec:
+            continue
+        key = idx.find(rec)
+        if key is None:
+            key, added = merge(store, idx, rec), added + 1
+        store[key].setdefault("emailed", dict(date=str(row["email_date"])[:10], subject=row.get("email_subject"),
+                                              tier=row.get("tier"), note=row.get("reviewer_note")))
+    return added
 
 
 def decision_for(key: str, a: dict, decisions: dict) -> str | None:
@@ -1060,18 +1394,20 @@ def run_row(settings: dict, since: date, until: date, terms_from: str, articles:
     return dict(run_at=datetime.now(timezone.utc), window_start=since, window_end=until, sources=settings["sources"],
                 scholar_pages=settings["scholar_pages"], priority_keywords=settings["priority_keywords"],
                 terms=[tuple(t[k] for k in TERM_FIELDS) for t in settings["terms"]], terms_from=terms_from,
-                api_keys=(keys["pubmed"], keys["openalex"], keys["scholar"]), articles=articles, new_articles=new_articles, shown=shown)
+                api_keys=(keys["pubmed"], keys["openalex"], keys["scholar"]), articles=articles, new_articles=new_articles, shown=shown,
+                l3_rules=json.dumps(settings["l3_rules"], ensure_ascii=False))
 
 
 class Tables:
     """The article store, reviewer decisions, saved settings and run log as the Delta tables <prefix>_articles,
     _decisions, _settings and _runs (tables.sql), through Spark. The job writes _articles and _runs; the app writes
-    _decisions and _settings, and builds the page from all four."""
+    _decisions and _settings, and builds the page from all four. The job also reads _intents and _ci_articles
+    (ci_mails/intents.sql) when they exist: the L3 reasons, and the articles sent in Articles of Interest emails."""
     def __init__(self, prefix: str):
         from pyspark.sql import SparkSession
         self.spark = SparkSession.builder.getOrCreate()
-        self.articles_t, self.decisions_t, self.settings_t, self.runs_t = (
-            f"{prefix}_{n}" for n in ("articles", "decisions", "settings", "runs"))
+        self.articles_t, self.decisions_t, self.settings_t, self.runs_t, self.intents_t, self.ci_t = (
+            f"{prefix}_{n}" for n in ("articles", "decisions", "settings", "runs", "intents", "ci_articles"))
         for t in (self.articles_t, self.decisions_t, self.settings_t, self.runs_t):
             if not self.spark.catalog.tableExists(t):
                 sys.exit(f"Table {t} does not exist or you can't read it. Create the tables with tables.sql (DEPLOY.md, Step 3).")
@@ -1100,6 +1436,19 @@ class Tables:
     def settings(self) -> dict:
         rows = self.spark.table(self.settings_t).orderBy("updated_at", ascending=False).limit(1).collect()
         return clean_settings(rows[0].asDict(recursive=True)) if rows else {}
+
+    def l3_rules(self) -> list[dict] | None:
+        """The active rows of _intents in rank order, or None when the table does not exist (L3_INTENTS then apply)."""
+        if not self.spark.catalog.tableExists(self.intents_t):
+            return None
+        rows = self.spark.table(self.intents_t).where("active").orderBy("rank").collect()
+        return [{k: r.asDict(recursive=True).get(k) for k in L3_RULE_FIELDS} for r in rows] or None
+
+    def emailed(self) -> list[dict]:
+        """The rows of _ci_articles, the articles sent in Articles of Interest emails; [] when the table does not exist."""
+        if not self.spark.catalog.tableExists(self.ci_t):
+            return []
+        return [r.asDict() for r in self.spark.table(self.ci_t).select(*EMAILED_FIELDS).collect()]
 
     def import_files(self, data_dir: str):
         """Copies in the articles.json, decisions.csv and settings.json that earlier versions kept in data_dir, then
@@ -1202,7 +1551,10 @@ def main():
         terms_from = args.terms or os.path.join(HERE, "terms.csv")
         terms = clean_terms(read_csv(terms_from))
     l3_keywords = saved.get("priority_keywords") or []
+    table_l3 = db.l3_rules() if db else None
+    l3_rules = table_l3 or DEFAULT_L3_RULES
     print(f"{len(terms)} terms from {terms_from} · {len(l3_keywords)} L3 priority keywords · "
+          f"{sum(r['kind'] == 'intent' for r in l3_rules)} L3 reasons from {db.intents_t if table_l3 else 'surveillance.py'} · "
           f"sources: {', '.join(s for s in SOURCE_IDS if s in sources)}")
     rules = read_csv(args.exclusions)
     term_cat = {t["term"]: t["product_category"] for t in terms}
@@ -1304,13 +1656,20 @@ def main():
                 merge(store, idx, dict(found, **scholar, matched_terms=sorted(h["terms"]), sources=sort_sources(h["feeds"])))
             print(f"Google Scholar: {len(store) - n0} articles not already found by PubMed or OpenAlex")
 
-    # 2. tag + summarise (always, so edits to terms/rules apply to old rows) ----
+    # 2. articles sent in Articles of Interest emails: accepted, and on the page whatever their date ----------
+    emailed_path = os.path.join(args.data_dir, "ci_articles.json")
+    emailed = db.emailed() if db else json.load(open(emailed_path, encoding="utf-8")) if os.path.exists(emailed_path) else []
+    added = add_emailed(store, idx, emailed)
+    if emailed:
+        print(f"{len(emailed)} articles from Articles of Interest emails, {added} of them new to the store")
+
+    # 3. tag + summarise (always, so edits to terms/rules apply to old rows) ----
     for a in store.values():
-        enrich(a, term_cat, rules, term_query, l3_keywords)
+        enrich(a, term_cat, rules, term_query, l3_keywords, l3_rules)
     if not db:                                         # with the tables, the store is saved below with the page order
         json.dump(store, open(store_path, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
-    # 3. page -----------------------------------------------------------------
+    # 4. page -----------------------------------------------------------------
     if db:
         decisions = db.decisions()
     else:
@@ -1321,12 +1680,11 @@ def main():
         d = decision_for(k, a, decisions) or {}
         return to_page_row(a, d.get("decision"), key=k, reasons=split_reasons(d.get("reasons")))
     rows = [page_row(k, a) for k, a in store.items()
-            if (a.get("first_seen") or "")[:10] >= cutoff or (a.get("pub_date") or "") >= cutoff]
-    order = {"High": 0, "Medium": 1, "Check": 2, "Low": 3}
-    rows.sort(key=lambda r: (order.get(r["prio"], 9), r["pub_date"]), reverse=False)
-    rows.sort(key=lambda r: (order.get(r["prio"], 9), not r["l3"]))     # L3 keyword matches first within each priority
+            if (a.get("first_seen") or "")[:10] >= cutoff or (a.get("pub_date") or "") >= cutoff or a.get("emailed")]
+    rows.sort(key=lambda r: r["pub_date"], reverse=True)
+    rows.sort(key=lambda r: (-r["score"], not r["l3"]))   # highest L3 score first; then own L3 keywords, then newest
     page_settings = dict(terms=terms, sources=[s for s in SOURCE_IDS if s in sources], scholar_pages=scholar_pages,
-                         priority_keywords=l3_keywords,
+                         priority_keywords=l3_keywords, l3_rules=l3_rules,
                          keys=dict(pubmed=bool(args.api_key), openalex=bool(openalex_key), scholar=bool(serpapi_key)))
     if db:                                             # the app builds the page from these two tables on every request
         db.save_articles(store, {r["id"]: i for i, r in enumerate(rows)})
@@ -1338,15 +1696,15 @@ def main():
         page_to = args.out
     feeds = {k: sum(r["status"] == k for r in rows) for k in ("review", "accepted", "ignored")}
     acc = {k: sum(r["access"] == k for r in rows) for k in ("Full text", "Abstract", "Title only")}
-    pri = {k: sum(r["prio"] == k for r in rows if r["status"] == "review") for k in ("High", "Medium", "Check", "Low")}
+    pri = {band: sum(r["prio"] == band for r in rows) for _, band in L3_BANDS}
     src = {k: sum(k in r["src"] for r in rows) for k in SOURCES}
-    print(f"store: {len(store)} articles · page: {len(rows)} shown: {feeds['review']} to review, {feeds['accepted']} accepted, "
-          f"{feeds['ignored']} ignored → {page_to}")
+    print(f"store: {len(store)} articles · page: {len(rows)} shown: {feeds['review']} to review, {feeds['accepted']} accepted "
+          f"({sum(r['status'] == 'accepted' and not r['decision'] for r in rows)} automatically), {feeds['ignored']} ignored → {page_to}")
     print(f"sources: {src['PubMed']} PubMed · {src['OpenAlex']} OpenAlex · {src['Google Scholar']} Google Scholar · "
-          f"{sum(', ' in r['src'] for r in rows)} found by more than one (shown once)")
+          f"{src['Email']} only from an email · {sum(', ' in r['src'] for r in rows)} found by more than one (shown once)")
     print(f"access: {acc['Full text']} full text (PMC) · {acc['Abstract']} abstract · {acc['Title only']} title only")
-    print(f"priority (to review): {pri['High']} high · {pri['Medium']} medium · {pri['Check']} check · {pri['Low']} low · "
-          f"{sum(bool(r['l3']) for r in rows if r['status'] == 'review')} with an L3 keyword")
+    print("priority: " + " · ".join(f"{n} {band.lower()}" for band, n in pri.items()) +
+          f" · {sum(bool(r['l3']) for r in rows)} with an L3 keyword from Settings")
     intents = {k: sum(r["intent"] == k for r in rows if r["status"] == "review") for k in INTENTS}
     print("intent (to review): " + " · ".join(f"{n} {k.lower()}" for k, n in intents.items() if n))
 

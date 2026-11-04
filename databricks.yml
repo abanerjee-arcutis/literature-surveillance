@@ -28,6 +28,7 @@ sync:
     - data/**
     - literature_update.html
     - tests/page_offline.html
+    - ci_mails/**                                     # run from a laptop: loads the _intents and _ci_articles tables
     - "**/__pycache__/**"
 
 resources:

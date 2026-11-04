@@ -2,7 +2,8 @@
 that the daily job wrote, the decisions and settings saved here), saves reviewers' Accept / Ignore / Restore clicks
 (with the reasons ticked for an accept or ignore) to the decisions table, and saves the Settings dialog (sources,
 search terms and priority keywords) to the settings table, so the next run uses them. The tables are
-<LITSURV_TABLES>_articles, _runs, _decisions and _settings (tables.sql).
+<LITSURV_TABLES>_articles, _runs, _decisions and _settings (tables.sql). Settings → L3 lists the L3 reasons and
+push-down rules the last run scored with, from its row in _runs.
 
 The app runs its SQL on a SQL warehouse as its own service principal, so viewers only need "Can use" on the app.
 """
@@ -146,7 +147,8 @@ def page():
     if saved:
         hook["SAVED_SETTINGS"] = saved
     last = dict(terms=run["terms"], sources=run["sources"], scholar_pages=run["scholar_pages"],   # what the last run searched with
-                priority_keywords=run.get("priority_keywords") or [], keys=run["api_keys"])
+                priority_keywords=run.get("priority_keywords") or [], keys=run["api_keys"],
+                l3_rules=json.loads(run.get("l3_rules") or "[]"))   # absent from runs before the L3 score
     html = fill(template, [row for _, _, row in articles], header(run["sources"], date.fromisoformat(run["window_start"]),
                 date.fromisoformat(run["window_end"]), datetime.fromisoformat(run["run_at"])), last)
     script = "".join(f"window.{k} = {json.dumps(v)};" for k, v in hook.items()).replace("</", "<\\/")

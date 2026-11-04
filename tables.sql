@@ -22,8 +22,8 @@ CREATE TABLE IF NOT EXISTS medical_prod.apps.literature_surveillance_articles (
   study_type     STRING,
   intent         STRING          COMMENT 'L2 intent: Safety, Efficacy, Real-world use, Mechanism, Disease state, Patient perspective, Review & guidance or Other',
   access         STRING          COMMENT 'Full text, Abstract or Title only',
-  priority       STRING          COMMENT 'High, Medium, Check or Low',
-  l3_keywords    ARRAY<STRING>   COMMENT 'L3 priority keywords in the title or abstract',
+  priority       STRING          COMMENT 'From the L3 score: Must read (85+), Of interest (60-84), FYI (40-59) or Low; Low when an exclusion rule fired',
+  l3_keywords    ARRAY<STRING>   COMMENT 'L3 priority keywords saved in Settings that are in the title or abstract (the L3 reasons matched, the score and the push-down rules are in record)',
   exclusion_rule STRING          COMMENT 'Exclusion rule that puts the article on the Ignored feed unless a reviewer decided otherwise',
   sponsor        STRING,
   abstract       STRING,
@@ -37,7 +37,7 @@ COMMENT 'Literature surveillance: one row per article found. The daily job rewri
 
 CREATE TABLE IF NOT EXISTS medical_prod.apps.literature_surveillance_decisions (
   article_id STRING NOT NULL COMMENT 'literature_surveillance_articles.id, or one of its aliases',
-  decision   STRING NOT NULL COMMENT 'accepted, ignored, or restored (back to review despite an exclusion rule)',
+  decision   STRING NOT NULL COMMENT 'accepted, ignored, or restored (back to review despite an exclusion rule, a Must read score or an Articles of Interest email)',
   reasons    ARRAY<STRING>   COMMENT 'Keywords and reasons the reviewer ticked when accepting or ignoring',
   decided_by STRING          COMMENT 'Reviewer email',
   decided_at TIMESTAMP
@@ -69,6 +69,11 @@ CREATE TABLE IF NOT EXISTS medical_prod.apps.literature_surveillance_runs (
   api_keys          STRUCT<pubmed: BOOLEAN, openalex: BOOLEAN, scholar: BOOLEAN> COMMENT 'Which API keys the run had',
   articles          INT           COMMENT 'Articles in the store after the run',
   new_articles      INT           COMMENT 'Articles this run found for the first time',
-  shown             INT           COMMENT 'Articles on the page'
+  shown             INT           COMMENT 'Articles on the page',
+  l3_rules          STRING        COMMENT 'The L3 reasons and push-down rules the run scored with, as JSON (the _intents table, else surveillance.py)'
 )
 COMMENT 'Literature surveillance: one row per run of the daily job. The app takes the page header and what the last run searched with from the newest row.';
+
+-- Tables created before the L3 score (November 2026) lack the runs table's last column. Add it once; until then the job
+-- skips it and the page's Settings → L3 tab cannot list the L3 reasons:
+--   ALTER TABLE medical_prod.apps.literature_surveillance_runs ADD COLUMNS (l3_rules STRING COMMENT 'The L3 reasons and push-down rules the run scored with, as JSON (the _intents table, else surveillance.py)');
