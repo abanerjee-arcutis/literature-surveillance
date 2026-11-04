@@ -166,6 +166,30 @@ S.merge(store, idx, rec("Google Scholar", "Tapinarof cream in children with atop
 S.merge(store, idx, rec("Google Scholar", "Tapinarof cream in children with atopic dermatitis: 8-week results", scholar_id="gs3"))
 S.merge(store, idx, rec("OpenAlex", T, doi="10.9999/other", openalex_id="W2"))
 assert sorted(store) == ["1", "doi:10.9999/other", "scholar:gs2", "scholar:gs3"], sorted(store)
+# ...but a repository copy (Zenodo, Figshare…) with its own DOI is the same article, and the journal's copy is kept
+S.merge(store, idx, rec("OpenAlex", T, doi="10.6084/m9.figshare.1", openalex_id="W3"))
+assert sorted(store) == ["1", "doi:10.9999/other", "scholar:gs2", "scholar:gs3"] and store["1"]["doi"] == "10.1080/X.1"
+Z = "Perspectives on topical PDE4 inhibitor drugs from development to submission"
+zs = {}; zi = S.Index(zs)
+S.merge(zs, zi, rec("OpenAlex", Z, doi="10.5281/zenodo.2", openalex_id="W5"))
+S.merge(zs, zi, rec("OpenAlex", Z, doi="10.1016/j.real.2026.1", openalex_id="W6"))
+assert list(zs) == ["doi:10.1016/j.real.2026.1"] and zs["doi:10.1016/j.real.2026.1"]["aliases"] == ["doi:10.5281/zenodo.2"]
+# dedupe() folds such copies stored apart before they were recognised; the folded key stays as an alias
+apart = {"doi:10.5281/zenodo.11": rec("OpenAlex", Z, doi="10.5281/zenodo.11", first_seen="2026-08-02"),
+         "doi:10.5281/zenodo.12": rec("OpenAlex", Z, doi="10.5281/zenodo.12", first_seen="2026-08-01"),
+         "77": rec("PubMed", Z + ".", pmid="77", doi="10.1016/j.real.2026.7", first_seen="2026-08-05"),
+         "doi:10.9999/z": rec("OpenAlex", "Something else entirely about tapinarof", doi="10.9999/z")}
+assert S.dedupe(apart) == 2 and sorted(apart) == ["77", "doi:10.9999/z"], sorted(apart)
+assert apart["77"]["aliases"] == ["doi:10.5281/zenodo.11", "doi:10.5281/zenodo.12"] and apart["77"]["first_seen"] == "2026-08-01"
+assert S.dedupe(apart) == 0
+# OpenAlex records that are not articles (data files, front matter) are filtered
+ds = S.parse_openalex_work({"id": "https://openalex.org/W9", "doi": "10.13130/rd_unimi/x/1", "display_name": "Tapinarof.pdb",
+                            "type": "dataset", "publication_date": "2026-10-01"})
+assert ds["oa_type"] == "dataset" and S.enrich(dict(ds, matched_terms=["Tapinarof"]), term_cat, rules)["rule"] == "Not an article (dataset or front matter)"
+for title, kind, out in [("TRuE-AD3 52-week supplemental data", "dataset", True), ("Peer Review Report For: X", "peer-review", True),
+                         ("Comparative Effectiveness of Topical Roflumilast and Tapinarof: A Network Meta-Analysis", "dataset", False),
+                         ("Tapinarof cream in adolescents", "article", False)]:
+    assert S.not_an_article(dict(origin="OpenAlex", oa_type=kind, title=title)) is out, title   # a real article OpenAlex calls a dataset stays
 
 # a Scholar-only hit whose term is only in the full text is filtered; the merged record is not
 tq = {t["term"]: S.plain_query(t["pubmed_query"]) for t in terms}
@@ -175,6 +199,9 @@ sc = S.enrich(rec("Google Scholar", "Psoriasis burden in primary care across Eur
 assert m["rule"] is None and sc["rule"] == "Term only in full text (Google Scholar)" and "Google Scholar" in sc["summary"], sc["summary"]
 row = S.to_page_row(m, None, key="1")
 assert row["src"] == "PubMed, OpenAlex, Google Scholar" and row["links"][-1]["url"] == "https://example.org/a", row["links"]
+assert row["first_seen"] == m["first_seen"][:19] and row["meta"].startswith("Liu J · J Dermatolog Treat 2026")
+anon = S.to_page_row(S.enrich(rec("OpenAlex", "Tapinarof in practice", authors=[], journal="Figshare"), term_cat, rules), None, key="x")
+assert anon["cite"] == "Figshare · 2026" and anon["meta"] == "Figshare 2026 · Article", (anon["cite"], anon["meta"])   # no "Unknown"
 
 # --- feeds: a reviewer's decision wins over the exclusion rules ---------------------
 assert S.page_status(None, None) == "review" and S.page_status("Veterinary", None) == "ignored"

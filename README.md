@@ -20,9 +20,15 @@ terms and rules.
 
 ## The page
 
-- **Review feed** – new articles waiting for a decision, highest L3 score first. ✓ accepts an article, ✕
-  ignores it. Each row shows its matched term, disease, intent (safety in red), access and priority (with its L3
-  score; hover it for the reasons).
+- **Header** – the sources the last run searched (Google Scholar only when it had a SerpApi key), its window, when
+  it ran (in the viewer's time zone) and how many articles it found for the first time. A warning appears when the
+  last run is over 30 hours old. The viewer's email is shown on the right: decisions are saved under it.
+  *How it works* explains the page to a first-time reader.
+- **Review feed** – new articles waiting for a decision, highest L3 score first, grouped by priority. The Low band
+  is folded away at the end (*Show the … Low-priority articles*) unless it is all there is, or the Priority filter
+  or a search asks for it. ✓ accepts an article, ✕ ignores it. Each row shows its matched term, disease, intent
+  (safety in red), access and priority (with its L3 score; hover it for the reasons). **New** marks articles a run
+  first found in the last 7 days.
 - **Why accept / why ignore** – ✓ and ✕ first ask why, with no free text: tick at least one chip under
   *Keywords in this article* (its disease, intent, study type and sponsor, plus the drugs, patient groups,
   body sites and evidence words found in its title and abstract) or *Reason* (a fixed list each for
@@ -36,6 +42,15 @@ terms and rules.
   The article page shows the email's date and what it said about the article.
 - **Ignored feed** – articles a reviewer ignored, plus those the exclusion rules filtered out. *Restore*
   sends one back to review (moving back to review asks nothing and clears the reasons).
+- **Who decided** – every decision is saved with the reviewer's email and time (the app reads them from the
+  `X-Forwarded-Email` header Databricks Apps adds). The article page says *Accepted by … on …*, and the tooltip
+  of a row's reasons line says the same.
+- **Sort and Export** – above each feed. *Sort* lists by priority (grouped by band), newest published, or most
+  recently found. *Export* works on the feed as filtered and searched: *Copy digest* puts an email-ready list on
+  the clipboard (grouped by priority; each article's linked title, citation, summary and why it is on the list),
+  and *Download CSV* saves a spreadsheet with every field, including the L3 reasons and who decided.
+- **Links** – the address names what is on screen (`#review`, `#accepted`, `#ignored`, `#article/<id>`), so the
+  browser's back button works and *Copy link* on an article page gives colleagues a link straight to it.
 - **Settings** (top right) has four tabs. **Sources** switches PubMed, OpenAlex and Google Scholar on or
   off, sets Scholar pages per term, and shows whether the last run had each API key. **L1 keywords** lists
   the search terms with their query for each source (OpenAlex and Google Scholar queries are derived from
@@ -46,7 +61,8 @@ terms and rules.
   gets a reason worth 60 points and is marked ↑. Saved settings apply from the next run.
 
 Above the feed tabs, a filters card holds the search box and one row of chips each for Published (last 30,
-60 or 90 days, by publication date), Priority, Disease, Intent, Source and Term, plus Reason (the reasons ticked,
+60 or 90 days, by publication date), Added (last 7 or 30 days, by when a run first found the article), Priority,
+Disease, Intent, Source and Term, plus Reason (the reasons ticked,
 most used first) on a feed that has any. Each chip shows how many articles in the current feed it would leave, given the other
 filters; clicking a selected chip again clears it, and *Clear filters* resets them all. The chevron folds
 the card down to the search box (its header then names the filters that are on); the browser remembers it. The filters apply
@@ -102,7 +118,7 @@ Useful options:
 - **PubMed** – searched by entry date, as before.
 - **OpenAlex** – searched by publication date. OpenAlex searches full text too, so hits are kept only when the query matches the title or abstract (the equivalent of `[tiab]`). Hits that carry a PMID are fetched from PubMed, so they get PubMed's abstract, MeSH and PMC full text.
 - **Google Scholar** – via SerpApi, newest first; hits are kept while the date Scholar added them falls in the window. Scholar returns only a title, link and snippet, so each new hit is looked up in OpenAlex (by DOI in the link, else by title); if that finds a PMID, the PubMed record is used. Scholar-only hits whose term is not in the title or abstract go to the *Ignored feed* with the rule "Term only in full text (Google Scholar)".
-- **De-duplication** – two hits are the same article when they share a PMID, a DOI, or a title (ignoring case, punctuation and markup; titles must also have the same numbers and a publication year within one year, and Scholar's shortened titles match by prefix). Records with different PMIDs or DOIs are never merged. The merged record keeps the metadata of the best source (PubMed, then OpenAlex, then Scholar), and its **Source** lists every feed that found it. If an article first seen in Scholar or OpenAlex later appears in PubMed, it keeps its first-seen date and any reviewer decision.
+- **De-duplication** – two hits are the same article when they share a PMID, a DOI, or a title (ignoring case, punctuation and markup; titles must also have the same numbers and a publication year within one year, and Scholar's shortened titles match by prefix). Records with different PMIDs or DOIs are never merged, except that a repository DOI (Zenodo, Figshare, OSF, Dryad, Dataverse: `REPOSITORY_DOI` in `surveillance.py`) does not count, since such a copy of a journal article, often one per version, has its own DOI; the journal's copy is kept. Every run first folds together stored records that these rules say are the same article (`dedupe`), keeping the folded record's id as an alias so decisions follow it. OpenAlex records that are not articles (datasets, front matter, peer reviews) are ignored with the rule *Not an article*. The merged record keeps the metadata of the best source (PubMed, then OpenAlex, then Scholar), and its **Source** lists every feed that found it. If an article first seen in Scholar or OpenAlex later appears in PubMed, it keeps its first-seen date and any reviewer decision.
 
 ## How each field is derived
 

@@ -18,7 +18,7 @@ variables:
       warehouse: medical-sql-wh-westus2               # EDIT: name of a SQL warehouse (SQL Warehouses in the sidebar)
   notify_email:
     description: Gets an email if a run fails; also sent to NCBI and OpenAlex as the contact address
-    default: you@arcutis.com                          # EDIT
+    default: abanerjee@arcutis.com
   secret_scope:
     description: Secret scope holding pubmed-api-key, serpapi-key and (optional) openalex-api-key
     default: lit-surv

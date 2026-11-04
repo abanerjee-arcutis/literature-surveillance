@@ -707,8 +707,20 @@ def parse_openalex_work(w: dict) -> dict:
         issue=(w.get("biblio") or {}).get("issue") or "", language="eng" if lang == "en" else lang, record_status="",
         url=f"https://doi.org/{doi}" if doi else loc.get("landing_page_url") or w.get("id") or "",
         mesh=[], openalex_id=(w.get("id") or "").rsplit("/", 1)[-1] or None,
-        oa_url=(w.get("open_access") or {}).get("oa_url"),
+        oa_url=(w.get("open_access") or {}).get("oa_url"), oa_type=w.get("type"),
     )
+
+
+# OpenAlex work types that are not articles: supplements, journal front matter, peer reviews, grants. OpenAlex also
+# types some repository copies of real articles 'dataset' (a USC library copy of a network meta-analysis), so a
+# dataset counts only when its title says it is data.
+NOT_ARTICLE_TYPES = {"paratext", "peer-review", "supplementary-materials", "grant"}
+DATA_TITLE = re.compile(r"\b(data(sets?)?|supplement\w*|supporting information|tables?|figures?|raw|pdb)\b", re.I)
+
+
+def not_an_article(a: dict) -> bool:
+    t = a.get("oa_type")
+    return a.get("origin") == "OpenAlex" and (t in NOT_ARTICLE_TYPES or t == "dataset" and bool(DATA_TITLE.search(a.get("title") or "")))
 
 
 # ----------------------------------------------------------------------------- Google Scholar
@@ -813,12 +825,25 @@ def years_close(x: dict, y: dict) -> bool:
     return not (a.isdigit() and b.isdigit()) or abs(int(a) - int(b)) <= 1
 
 
+# Repositories that give their own DOI to a copy of an article published elsewhere (often one per version): Zenodo,
+# Figshare, OSF, OSF Preprints, Dryad, Harvard Dataverse, the University of Milan's Dataverse. Such a DOI does not make
+# a record a different article from the journal's copy with the same title.
+REPOSITORY_DOI = re.compile(r"^10\.(5281|6084|17605|31219|5061|7910|13130)/")
+
+
+def repository_doi(doi: str | None) -> bool:
+    return bool(REPOSITORY_DOI.match(norm_doi(doi) or ""))
+
+
 def compatible(x: dict, y: dict) -> bool:
-    """False when the two records carry different PMIDs or DOIs, i.e. are certainly different articles."""
+    """False when the two records carry different PMIDs or DOIs, i.e. are certainly different articles. A repository
+    DOI (Zenodo, Figshare…) does not count: the same article often has one besides the journal's."""
     if x.get("pmid") and y.get("pmid") and x["pmid"] != y["pmid"]:
         return False
     dx, dy = norm_doi(x.get("doi")), norm_doi(y.get("doi"))
-    return not (dx and dy and not (dx.startswith(dy) or dy.startswith(dx)))
+    if not (dx and dy) or dx.startswith(dy) or dy.startswith(dx):
+        return True
+    return repository_doi(dx) or repository_doi(dy)
 
 
 class Index:
@@ -872,9 +897,9 @@ def now() -> str:
 
 def merge(store: dict, idx: Index, new: dict) -> str:
     """Adds `new` to the store, folding it into the stored record for the same article if there is one.
-    The copy from the better source (PubMed > OpenAlex > Google Scholar; the newer one on a tie) keeps its
-    metadata; feeds, matched terms, identifiers, links and the earliest first_seen are pooled. If the key
-    changes (a Scholar or OpenAlex record later found in PubMed), the old key is kept in `aliases`."""
+    The copy from the better source (PubMed > OpenAlex > Google Scholar; then the one without a repository DOI; the
+    newer one on a tie) keeps its metadata; feeds, matched terms, identifiers, links and the earliest first_seen are
+    pooled. If the key changes (a Scholar or OpenAlex record later found in PubMed), the old key is kept in `aliases`."""
     new.setdefault("sources", [new["origin"]])
     new.setdefault("matched_terms", [])
     key = idx.find(new)
@@ -885,7 +910,8 @@ def merge(store: dict, idx: Index, new: dict) -> str:
         idx.add(key, new)
         return key
     old = store.pop(key)
-    keep, other = (new, old) if SOURCES.index(new["origin"]) <= SOURCES.index(old["origin"]) else (old, new)
+    rank = lambda r: (SOURCES.index(r["origin"]), repository_doi(r.get("doi")))  # noqa: E731
+    keep, other = (new, old) if rank(new) <= rank(old) else (old, new)
     for f in ("pmid", "doi", "pmc", "pmc_text", "oa_url", "openalex_id", *SCHOLAR_FIELDS):
         if not keep.get(f) and other.get(f):
             keep[f] = other[f]
@@ -898,6 +924,26 @@ def merge(store: dict, idx: Index, new: dict) -> str:
     idx.add(new_key, other)
     idx.add(new_key, keep)
     return new_key
+
+
+def dedupe(store: dict) -> int:
+    """Folds together stored records that are the same article but were stored apart, e.g. a journal article and its
+    Figshare or Zenodo copy stored before repository DOIs were recognised. A folded record's key joins the `aliases`
+    of the record it is folded into, so reviewer decisions follow it. Returns how many records were folded."""
+    kept: dict[str, dict] = {}
+    idx = Index(kept)
+    folded = 0
+    for k, a in list(store.items()):
+        if idx.find(a) is None:
+            kept[k] = a
+            idx.add(k, a)
+        else:
+            a["aliases"] = sorted(set(a.get("aliases") or []) | {k})
+            merge(kept, idx, a)
+            folded += 1
+    store.clear()
+    store.update(kept)
+    return folded
 
 
 def note_hit(hits: dict, pmid: str, term: str, feed: str):
@@ -1234,6 +1280,8 @@ def enrich(a: dict, term_cat: dict, rules, term_query: dict | None = None, l3_ke
     a["rule"] = apply_rules(rules, a["title"], a.get("abstract"))
     if a["study_type"] in ("Erratum", "Retraction notice") and not a["rule"]:
         a["rule"] = "Erratum / retraction notice"
+    if not a["rule"] and not_an_article(a):
+        a["rule"] = "Not an article (dataset or front matter)"
     # Google Scholar matches full text, so a Scholar-only hit often just cites the drug in its body or references
     if not a["rule"] and term_query and a.get("sources") == ["Google Scholar"] and not any(
             query_matches(term_query.get(t, t), f"{a['title']} {a.get('abstract') or ''}") for t in a["matched_terms"]):
@@ -1270,7 +1318,7 @@ def split_reasons(text: str | None) -> list[str]:
 def to_page_row(a: dict, decision: str | None, key: str | None = None, reasons=()) -> dict:
     decision = "ignored" if decision == "removed" else decision or None
     note = f"Matched rule: {a['rule']}" if a["rule"] else ""
-    first = (a["authors"][0] if a["authors"] else "Unknown") + (" et al." if len(a["authors"]) > 1 else "")
+    first = (a["authors"][0] + (" et al." if len(a["authors"]) > 1 else "")) if a["authors"] else ""
     year = a["pub_date"][:4]
     origin = a.get("origin", "PubMed")
     via = {"PubMed": "PubMed" + (" (PMC full text)" if a.get("pmc") else ""), "OpenAlex": "OpenAlex",
@@ -1278,8 +1326,10 @@ def to_page_row(a: dict, decision: str | None, key: str | None = None, reasons=(
     links = article_links(a)
     return dict(
         id=key or a["pmid"], title=a["title"],
-        cite=f"{', '.join(a['authors'][:3])}{' et al.' if len(a['authors']) > 3 else ''} · {a['journal']} · {year}",
-        meta=f"{first} · {a['journal_abbrev'] or a['journal']} {year} · {a['study_type']}",
+        cite=" · ".join(filter(None, (f"{', '.join(a['authors'][:3])}{' et al.' if len(a['authors']) > 3 else ''}",
+                                      a["journal"], year))),
+        meta=" · ".join(filter(None, (first, f"{a['journal_abbrev'] or a['journal']} {year}".strip(), a["study_type"]))),
+        first_seen=(a.get("first_seen") or "")[:19],
         src=", ".join(a.get("sources") or [origin]), via=via,
         term=", ".join(a["matched_terms"]), dz=a["disease"], product=a["product"], type=a["study_type"],
         intent=a["intent"], intent_why=a["intent_why"], access=a["access"], prio=a["priority"], l3=a["l3_keywords"], sponsor=a["sponsor"],
@@ -1567,6 +1617,9 @@ def main():
     for a in store.values():                           # records written before OpenAlex and Scholar were added
         a.setdefault("origin", "PubMed")
         a.setdefault("sources", ["PubMed"])
+    folded = dedupe(store)
+    if folded:
+        print(f"{folded} stored records folded into another record of the same article (e.g. a Zenodo or Figshare copy)")
     idx = Index(store)
 
     # 1. search and fetch -----------------------------------------------------
@@ -1692,7 +1745,8 @@ def main():
         db.log_run(run_row(page_settings, since, until, terms_from, len(store), new, len(rows)))
         page_to = f"{db.articles_t}, {db.runs_t}"
     else:
-        render(rows, args.template, args.out, page_header(sources, since, until, datetime.now()), page_settings)
+        searched = [s for s in SOURCE_IDS if s in sources and (s != "scholar" or serpapi_key)]
+        render(rows, args.template, args.out, page_header(searched, since, until, datetime.now()), page_settings)
         page_to = args.out
     feeds = {k: sum(r["status"] == k for r in rows) for k in ("review", "accepted", "ignored")}
     acc = {k: sum(r["access"] == k for r in rows) for k in ("Full text", "Abstract", "Title only")}
