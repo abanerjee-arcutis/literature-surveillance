@@ -32,7 +32,7 @@ The offline test (`python tests/test_offline.py`) needs neither.
   (safety in red), access and priority (with its L3 score; hover it for the reasons). **New** marks articles a run
   first found in the last 7 days.
 - **Why accept / why ignore** – ✓ and ✕ first ask why, with no free text: tick at least one chip under
-  *Keywords in this article* (its disease, intent, study type and sponsor, plus the drugs, patient groups,
+  *Keywords in this article* (its L3 priority, the L3 reasons and push-downs behind its score, whether it was emailed and how much text there is, its disease, intent, study type and sponsor, plus the drugs, patient groups,
   body sites and evidence words found in its title and abstract) or *Reason* (a fixed list each for
   accepting and ignoring, `REASONS` in `app/template.html`). Enter confirms, Esc cancels. The ticks are saved
   with the decision, shown under the title in the accepted feed, in the Reason column of the ignored feed

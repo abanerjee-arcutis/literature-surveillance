@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS medical_prod.apps.literature_surveillance_intents (
   weight           INT             COMMENT 'intent: the score when it is the best match; deprioritise: the points taken off (negative)',
   why              STRING          COMMENT 'Why Medical Affairs sends (or skips) such articles, from the INFORM emails',
   keyword_groups   ARRAY<STRUCT<field: STRING, keywords: ARRAY<STRING>>>
-                                   COMMENT 'intent: every group needs one of its L3 keywords in its field (title or title_abstract). Keywords match like L3 priority keywords: case and punctuation ignored, each word a prefix',
+                                   COMMENT 'intent: every group needs one of its L3 keywords in its field (title, title_abstract, or full_text: title + abstract + the PMC body, when the article has one). Keywords match like L3 priority keywords: case and punctuation ignored, each word a prefix',
   none_of          ARRAY<STRING>   COMMENT 'intent: does not match when one of these is in the title',
   title_regex      STRING          COMMENT 'deprioritise: fires when the title matches (case-insensitive Python regex)',
   text_regex       STRING          COMMENT 'deprioritise: fires when the abstract, conflict-of-interest statement or funders match',

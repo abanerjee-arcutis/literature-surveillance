@@ -780,17 +780,20 @@ def l3_find(keywords, text: str) -> str | None:
 
 
 def l3_score(rules, title: str, abstract: str | None, study_type: str | None = None, text: str = "",
-             own=()) -> tuple[int, list[dict], list[dict]]:
+             own=(), body: str = "") -> tuple[int, list[dict], list[dict]]:
     """(L3 score, the reasons matched with the keyword that met each group, best first, the push-down rules that fired).
     `text` is read by push-down rules besides the abstract (the conflict-of-interest statement and funders); `own` are
-    the L3 keywords from Settings found in the article, which count as one reason worth the own_keyword_points rule."""
+    the L3 keywords from Settings found in the article, which count as one reason worth the own_keyword_points rule.
+    `body` is the PMC full text, when there is one: only a keyword group whose field is 'full_text' reads it."""
     t, ta = l3_text(title), l3_text(f"{title} {abstract or ''}")
+    tf = l3_text(f"{title} {abstract or ''} {body}") if body else ta
+    fields = {"title": t, "full_text": tf}
     hits, pushed = [], []
     for r in rules:
         if r["kind"] == "intent":
             if l3_find(r.get("none_of"), t):
                 continue
-            found = [l3_find(g["keywords"], t if g["field"] == "title" else ta) for g in r["keyword_groups"]]
+            found = [l3_find(g["keywords"], fields.get(g["field"], ta)) for g in r["keyword_groups"]]
             if all(found):
                 hits.append(dict(id=r["intent_id"], intent=r["intent"], points=r["weight"], keywords=found))
         elif ((r.get("title_regex") and re.search(r["title_regex"], title or "", re.I))
@@ -920,7 +923,7 @@ def enrich(a: dict, term_cat: dict, term_query: dict | None = None, l3_keywords=
     a["l3_keywords"] = match_l3(l3_keywords, a["title"], a.get("abstract"))
     a["l3_score"], a["l3_intents"], a["l3_push_down"] = l3_score(
         RULES["l3"], a["title"], a.get("abstract"), a["study_type"],
-        f"{a.get('coi') or ''} {' '.join(a.get('grants') or [])}", a["l3_keywords"])
+        f"{a.get('coi') or ''} {' '.join(a.get('grants') or [])}", a["l3_keywords"], ft.get("body") or "")
     a["priority"] = "Low" if a["rule"] else l3_band(a["l3_score"])
     a["auto_accept"] = auto_accept(a)
     a["summary"], a["points"], a["why"] = summarise(a, a["access"])
@@ -1335,6 +1338,14 @@ def main():
     added = add_emailed(store, idx, emailed)
     if emailed:
         print(f"{len(emailed)} articles from Articles of Interest emails, {added} of them new to the store")
+    if not args.no_fetch:                              # the incomplete-record refresh above only covers recent articles
+        need = [a for a in store.values() if a.get("emailed") and a.get("pmc") and not (a.get("pmc_text") or {}).get("body")]
+        got = 0
+        for a in need:
+            a["pmc_text"] = pm.fetch_pmc(a["pmc"]) or a.get("pmc_text")
+            got += bool((a["pmc_text"] or {}).get("body"))
+        if need:
+            print(f"PMC full text for emailed articles that lacked it: {got} of {len(need)} fetched (the rest are embargoed or not open access)")
 
     # 3. tag + summarise (always, so edits to terms/rules apply to old rows) ----
     for a in store.values():

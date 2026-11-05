@@ -107,6 +107,14 @@ S.RULES["l3"] = only
 d4 = S.enrich(dict(d), term_cat)
 S.RULES["l3"] = L3
 assert d4["l3_score"] == 90 and d4["l3_push_down"] == [] and d4["priority"] == "Low"          # the exclusion rule still wins
+# a keyword group whose field is full_text also reads the PMC body; the other fields never do
+ft = [dict(intent_id="ft", kind="intent", intent="Product in the paper", weight=60,
+           keyword_groups=[dict(field="full_text", keywords=["roflumilast"])]),
+      dict(intent_id="ta", kind="intent", intent="Product in the abstract", weight=50,
+           keyword_groups=[dict(field="title_abstract", keywords=["roflumilast"])])]
+assert S.l3_score(ft, "Topical therapy for scalp psoriasis", "A review.", body="Roflumilast foam was approved.")[0] == 60
+assert S.l3_score(ft, "Topical therapy for scalp psoriasis", "A review.")[0] == 0
+assert S.l3_score(ft, "Roflumilast in psoriasis", "A review.")[0] == 65               # both reasons: 60 + 5
 # rules come only from the tables: an incomplete set is refused, and a switched-off rule does not apply
 for kind in ("disease", "l3_band", "default"):
     try:

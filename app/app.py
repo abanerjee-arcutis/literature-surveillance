@@ -18,6 +18,7 @@ import os
 import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timezone
+from email.utils import format_datetime
 
 from databricks.sdk import WorkspaceClient
 from databricks.sdk.service.sql import StatementParameterListItem, StatementState
@@ -238,6 +239,34 @@ def page():
                 date.fromisoformat(run["window_end"]), datetime.fromisoformat(run["run_at"])), last)
     script = "".join(f"window.{k} = {json.dumps(v)};" for k, v in hook.items()).replace("</", "<\\/")
     return html_response(html.replace("</head>", f"<script>{script}</script></head>", 1))
+
+
+@app.get("/rss.xml")
+def rss():
+    """RSS 2.0 feed of the accepted articles, newest first (a reviewer's decision wins over the job's own status)."""
+    articles, decisions = (f.result() for f in [pool.submit(read_page_articles), pool.submit(read_decisions)])
+    esc = html_lib.escape
+    items = []
+    for key, aliases, row in articles:
+        decision = next((decisions[k][0] for k in (key, *aliases) if k in decisions), None)
+        decision = "ignored" if decision == "removed" else decision
+        if decision == "accepted" or (decision in (None, "") and row.get("status") == "accepted"):
+            items.append(row)
+    items.sort(key=lambda r: r.get("first_seen") or "", reverse=True)
+    base = request.url_root
+    out = []
+    for r in items[:100]:
+        try:
+            pub = f"<pubDate>{format_datetime(datetime.fromisoformat(r['first_seen']).replace(tzinfo=timezone.utc))}</pubDate>"
+        except (KeyError, ValueError):
+            pub = ""
+        link = esc(r.get("link") or base)
+        desc = " ".join(filter(None, (r.get("cite"), r.get("summary"))))
+        out.append(f"<item><title>{esc(r['title'])}</title><link>{link}</link><guid isPermaLink=\"false\">{esc(str(r['id']))}</guid>"
+                   f"{pub}<description>{esc(desc)}</description></item>")
+    xml = ('<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>Literature Surveillance: accepted articles</title>'
+           f"<link>{esc(base)}</link><description>Articles accepted for the team, newest first.</description>{''.join(out)}</channel></rss>")
+    return Response(xml, mimetype="application/rss+xml", headers={"Cache-Control": "no-store"})
 
 
 @app.get("/healthz")

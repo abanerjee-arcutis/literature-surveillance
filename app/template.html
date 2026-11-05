@@ -24,6 +24,8 @@
   .sub{font-size:13px;color:var(--mute);margin-top:2px}
   .gear{display:flex;align-items:center;gap:8px;padding:8px 12px;flex-shrink:0}
   .gear svg{width:16px;height:16px}
+  a.btn{text-decoration:none;color:inherit;display:inline-flex;align-items:center;justify-content:center}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
   .hright{display:flex;align-items:center;gap:8px;flex-shrink:0}
   .me{font-size:12px;color:var(--mute);margin-right:6px;white-space:nowrap}
   .stale{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:999px;background:var(--warn-bg);color:var(--warn);font-size:11.5px;font-weight:500}
@@ -310,7 +312,9 @@
       </div>
       <div class="hright">
       <span class="me" id="me" hidden></span>
-      <button class="btn gear" id="openHelp" aria-haspopup="dialog" title="How this page works"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.6 2.6 0 0 1 5 .9c0 1.7-2.5 2.3-2.5 3.9M12 17h.01"/></svg><span>How it works</span></button>
+      <button class="btn gear" id="openNotify" aria-haspopup="dialog" title="Notifications" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></button>
+      <a class="btn gear" id="feedbackBtn" href="mailto:abanerjee@arcutis.com?cc=mpinnaka@arcutis.com&subject=Literature%20Surveillance%20feedback" title="Send feedback by email"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Feedback</span></a>
+      <button class="btn gear" id="openHelp"aria-haspopup="dialog" title="How this page works"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.6 2.6 0 0 1 5 .9c0 1.7-2.5 2.3-2.5 3.9M12 17h.01"/></svg><span>How it works</span></button>
       <button class="btn gear" id="openSettings" aria-haspopup="dialog" title="Sources, keywords and intent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg><span>Settings</span></button>
       </div>
     </div>
@@ -522,6 +526,28 @@
   </div>
 </div>
 
+<!-- Notifications -->
+<div class="overlay" id="notify" hidden>
+  <div class="modal exp" role="dialog" aria-modal="true" aria-labelledby="notifyTitle">
+    <div class="mhead">
+      <div class="h2" id="notifyTitle">Notifications</div>
+      <button class="icon" data-close="notify" title="Close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="mbody">
+      <div class="expopt">
+        <div><b>RSS feed</b><span>Accepted articles, newest first. Add this address to your feed reader. You need to be signed in to the app for the reader to open it.</span>
+          <input class="search" id="rssUrl" readonly aria-label="RSS feed address" style="margin-top:8px;width:100%"></div>
+        <button class="btn small" id="rssCopy">Copy link</button>
+        <a class="btn small" id="rssOpen" target="_blank" rel="noopener">Open</a>
+      </div>
+      <div class="expopt">
+        <div><b>Email alerts</b><span>Not configured yet.</span></div>
+        <button class="btn small" disabled>Not available</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- How it works -->
 <div class="overlay" id="help" hidden>
   <div class="modal help" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
@@ -622,7 +648,16 @@ const REASONS = CONFIG.reasons || { accepted: [], ignored: [] };
 const UNINFORMATIVE = ['Other', 'Unassigned', 'Unknown', 'Article', 'Not stated', 'None declared', ''];
 // the article's tags, then the keywords surveillance.py found in its title and abstract (tag_keywords); the study
 // type is left out when the intent already says it (Real-world → Real-world use)
-const articleKeywords = a => [...new Set([...a.dz, a.intent, (a.intent || '').startsWith(a.type) ? '' : a.type, ...a.keywords,
+// then what the L3 score says about it: its priority, the reasons to read that matched, the push-downs that fired, the
+// reviewer's own L3 keywords, and the distinctions that change how it is read (sent in an email, how much text there is)
+const articleKeywords = a => [...new Set([
+  ...(a.score || a.l3i.length ? [`Priority: ${a.prio}`] : []),
+  ...a.l3i.map(h => `L3 reason: ${h.intent}`),
+  ...a.pen.map(p => `Pushed down: ${p.rule}`),
+  ...a.l3.map(k => `My L3 keyword: ${k}`),
+  ...(a.emailed ? ['Sent in an Articles of Interest email'] : []),
+  ...(a.access ? [`Access: ${a.access}`] : []),
+  ...a.dz, a.intent, (a.intent || '').startsWith(a.type) ? '' : a.type, ...a.keywords,
   UNINFORMATIVE.includes(a.sponsor || '') ? '' : `Funded by ${a.sponsor}`])].filter(k => !UNINFORMATIVE.includes(k));
 // reasons ticked in the current feed, most used first; a selected one stays listed after switching feeds
 function reasonValues() {
@@ -1418,11 +1453,22 @@ function closeDialog(id) {
   document.body.style.overflow = '';
   if (dialogFrom && dialogFrom.isConnected) dialogFrom.focus();
 }
-['export', 'help'].forEach(id => {
+document.getElementById('openNotify').onclick = () => {
+  const u = new URL('rss.xml', location.href).href;
+  document.getElementById('rssUrl').value = u;
+  document.getElementById('rssOpen').href = u;
+  openDialog('notify');
+};
+document.getElementById('rssCopy').onclick = e => {
+  const inp = document.getElementById('rssUrl'); inp.select();
+  const done = () => { e.target.textContent = 'Copied'; setTimeout(() => e.target.textContent = 'Copy link', 1500); };
+  (navigator.clipboard ? navigator.clipboard.writeText(inp.value) : Promise.reject()).then(done, () => { document.execCommand('copy'); done(); });
+};
+['export', 'help', 'notify'].forEach(id => {
   document.querySelector(`#${id} [data-close]`).onclick = () => closeDialog(id);
   document.getElementById(id).onclick = e => { if (e.target.id === id) closeDialog(id); };
 });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') ['export', 'help'].forEach(closeDialog); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') ['export', 'help', 'notify'].forEach(closeDialog); });
 
 // copies text (or html with a text fallback) to the clipboard. Where the browser refuses, `shown` (the element showing
 // the same content) is selected and copied the old way, and if even that is refused it stays selected for Ctrl+C.
