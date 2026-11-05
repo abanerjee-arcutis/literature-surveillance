@@ -1,6 +1,4 @@
 __pycache__/
 .databricks/
 data/
-literature_update.html
-tests/page_offline.html
 ci_mails/work/

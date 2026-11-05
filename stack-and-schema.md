@@ -12,7 +12,7 @@ the database. `<catalog>` stands for the Unity Catalog catalog we are given; the
 | Store | `data/articles.json`, one record per PMID |
 | Search terms, exclusion rules | `terms.csv`, `exclusions.csv` |
 | Reviewer decisions | `data/decisions.csv` (optional; the page's Remove/Restore buttons last one browser session only) |
-| Page | `literature_update.html`, rendered from `template.html` with the data inlined |
+| Page | `literature_surveillance.html`, rendered from `template.html` with the data inlined |
 | Interim Databricks App | `app.py` + `app.yaml`: serves the page and re-runs the script on demand. The app's disk resets on every restart or redeploy, so this is a wireframe host only |
 
 ## 2. Target stack
@@ -212,7 +212,7 @@ Primary keys in Unity Catalog are informational, not enforced. The job keeps the
 /Volumes/<catalog>/lit_surveillance/raw/
   pubmed/<yyyy-mm-dd>/<run_id>/efetch_<batch>.xml
   pmc/<PMCID>.xml                       -- latest copy per PMC article
-  snapshots/literature_update_<yyyy-mm-dd>.html   -- optional: static page per run, for sharing or archiving
+  snapshots/literature_surveillance_<yyyy-mm-dd>.html   -- optional: static page per run, for sharing or archiving
 ```
 
 ### 3.3 Mapping from today's files
