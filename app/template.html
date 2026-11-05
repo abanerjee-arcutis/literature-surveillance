@@ -639,7 +639,7 @@ function isoDaysAgo(n) {
 const PERIODS = Object.fromEntries([30, 60, 90].map(n => [`Last ${n} days`, isoDaysAgo(n)]));
 // when a run first found the article (first_seen); articles known only from an email carry the email's date
 const ADDED = Object.fromEntries([7, 30].map(n => [`Last ${n} days`, isoDaysAgo(n)]));
-const isNew = a => (a.first_seen || '') >= ADDED['Last 7 days'] && a.src !== 'Email';
+const isNew = a => (a.first_seen || '') >= ADDED['Last 7 days'] && !!a.term;   // only articles the search found (an emailed article it missed has no matched term)
 // the rows of the filters card: state key, label, chip values, and whether article a has value v
 const FACETS = [
   { key: 'period', label: 'Published', values: () => Object.keys(PERIODS), has: (a, v) => (a.pub_date || '') >= PERIODS[v] },

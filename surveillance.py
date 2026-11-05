@@ -1002,6 +1002,8 @@ def add_emailed(store: dict, idx: Index, rows) -> int:
     'Email' as its source. Returns how many were added."""
     for a in store.values():
         a.pop("emailed", None)
+        if "Email" in (a.get("sources") or []) and a.get("origin") != "Email":   # stored as 'Email' by an earlier version
+            a["sources"] = sort_sources(set(a["sources"]) - {"Email"} | {a["origin"]})
     added = 0
     for row in sorted(rows, key=lambda r: str(r["email_date"])):
         rec = json.loads(row["record"]) if row.get("record") else None

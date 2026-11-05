@@ -69,7 +69,9 @@ def store_record(a) -> dict:
                  journal=re.sub(r"[\s.,]*\b20\d\d\.?$", "", after.strip(" .")).strip(" ."), journal_abbrev="",
                  pub_date=f"{years[-1]}-01-01" if years else "", doi=None, pmc=None, pub_types=[], grants=[], coi="",
                  issue="", language="eng", record_status="", url=links[0] if links else "", mesh=[])
-    r.update(sources=["Email"], matched_terms=[], first_seen=a["email_date"].rstrip("Z")[:19])
+    # source = where the record comes from (PubMed, else OpenAlex); 'Email' only when neither has the article.
+    # matched_terms stays empty: the search did not find it (the page shows no 'New' badge for it)
+    r.update(sources=[r["origin"]] if pm or oa else ["Email"], matched_terms=[], first_seen=a["email_date"].rstrip("Z")[:19])
     return r
 
 
