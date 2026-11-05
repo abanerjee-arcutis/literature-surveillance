@@ -152,10 +152,9 @@
   .icon.rnd[data-to="accepted"]{--t-bg:#eaf3ec;--t-bg2:#d9eadd;--t-ink:#2f6b3f}
   .icon.rnd[data-to="review"]{--t-bg:#e8f0f7;--t-bg2:#d6e5f2;--t-ink:#2c5f8a}
   .icon.rnd[data-to="ignored"]{--t-bg:#efeeeb;--t-bg2:#e2e1dc;--t-ink:#6b6a64}
-  /* bookmark: a neutral ribbon at the end of the title, the same size as the title text */
-  .ttl.inl{display:inline;width:auto}
-  .bmk{display:inline-flex;vertical-align:-2px;margin-left:6px;width:1em;height:1em;padding:0;border:0;background:none;color:#a5a49e;font-size:14px}
-  .bmk svg{width:1em;height:1em}
+  /* bookmark: a small neutral ribbon at the start of the line under the title */
+  .bmk{display:inline-flex;vertical-align:-2px;margin-right:6px;width:14px;height:14px;padding:0;border:0;background:none;color:#a5a49e}
+  .bmk svg{width:14px;height:14px}
   .bmk:hover,.bmk:focus-visible{color:var(--ink)}
   .bmk.on{color:var(--ink2)}
   .bmk.on svg{fill:currentColor}
@@ -838,7 +837,7 @@ const newBadge = a => isNew(a) ? `<span class="new" title="Found in the last 7 d
 function feedRow(a, feed, from = feed) {   // feed: the buttons and notes it gets; from: the list it is shown in
   const r = document.createElement('div'); r.className = 'trow';
   const why = a.reasons.join(' · '), auto = feed === 'accepted' && !a.decision && a.auto, by = decidedLine(a);
-  r.innerHTML = `<div style="min-width:0"><button class="ttl inl" title="${esc(a.title)}">${esc(a.title)}</button>${bmButton(a)}<div class="meta">${newBadge(a)}${esc(a.meta)}</div>${why ? `<div class="rsn" title="${esc(by || DECIDED_VERB[a.decision] || 'Decided')} because: ${esc(why)}">${a.decision === 'ignored' ? ICON.ignored : ICON.accepted}<span>${esc(why)}</span></div>` : auto ? `<div class="rsn auto" title="Accepted automatically: ${esc(a.auto)}">${autoIcon(a)}<span>${esc(a.auto)}</span></div>` : ''}</div>
+  r.innerHTML = `<div style="min-width:0"><button class="ttl" title="${esc(a.title)}">${esc(a.title)}</button><div class="meta">${bmButton(a)}${newBadge(a)}${esc(a.meta)}</div>${why ? `<div class="rsn" title="${esc(by || DECIDED_VERB[a.decision] || 'Decided')} because: ${esc(why)}">${a.decision === 'ignored' ? ICON.ignored : ICON.accepted}<span>${esc(why)}</span></div>` : auto ? `<div class="rsn auto" title="Accepted automatically: ${esc(a.auto)}">${autoIcon(a)}<span>${esc(a.auto)}</span></div>` : ''}</div>
     ${dateCell(a)}${srcCell(a)}
     <div class="cell">${esc(a.term)}</div><div class="cell">${esc(a.dz.join(', '))}</div>
     <div class="cell${a.intent === 'Safety' ? ' safety' : ''}" title="${esc(a.intent_why)}">${esc(a.intent)}</div>
@@ -853,7 +852,7 @@ function feedRow(a, feed, from = feed) {   // feed: the buttons and notes it get
 
 function ignoredRow(a, from = 'ignored') {
   const r = document.createElement('div'); r.className = 'trow';
-  r.innerHTML = `<div style="min-width:0"><button class="ttl inl" title="${esc(a.title)}">${esc(a.title)}</button>${bmButton(a)}<div class="meta">${esc(a.meta)}</div></div>
+  r.innerHTML = `<div style="min-width:0"><button class="ttl" title="${esc(a.title)}">${esc(a.title)}</button><div class="meta">${bmButton(a)}${esc(a.meta)}</div></div>
     ${dateCell(a)}${srcCell(a)}
     <div class="cell">${esc(a.term)}</div>
     <div style="display:flex;align-items:center;gap:8px;min-width:0" title="${esc([decidedLine(a), reasonNote(a)].filter(Boolean).join(': '))}"><span class="pill ${RULE_CLASS[reason(a)] || 'p-grey'}">${esc(reason(a))}</span><span class="cell" style="color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(reasonNote(a))}</span></div>
