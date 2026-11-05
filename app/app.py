@@ -1,4 +1,4 @@
-"""Databricks App: builds the Literature Update page from the tables on every request (the articles and the last run
+"""Databricks App: builds the Literature Surveillance page from the tables on every request (the articles and the last run
 that the daily job wrote, the decisions and settings saved here), saves reviewers' Accept / Ignore / Restore clicks
 (with the reasons ticked for an accept or ignore) to the decisions table, and saves the Settings dialog (sources,
 search terms and priority keywords) to the settings table, so the next run uses them. The tables are
@@ -158,11 +158,11 @@ def html_response(body: str, status: int = 200) -> Response:
 
 
 def message_page(title: str, text: str, detail: str = "", status: int = 500) -> Response:
-    """A plain page for when the Literature Update cannot be built, with a reload button."""
+    """A plain page for when the Literature Surveillance cannot be built, with a reload button."""
     esc = html_lib.escape
     more = f"<details><summary>Technical detail</summary><pre>{esc(detail)}</pre></details>" if detail else ""
     return html_response(f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1"><title>Literature Update</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>Literature Surveillance</title>
 <style>body{{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#f4f3ef;color:#1f1f1c}}
 main{{max-width:620px;margin:12vh auto;padding:28px 32px;background:#fff;border:1px solid #e3e1da;border-radius:12px}}
 h1{{font-size:20px;margin:0 0 10px}}p{{line-height:1.55;color:#3d3c38}}button{{margin-top:14px;padding:9px 16px;border-radius:8px;
@@ -183,7 +183,7 @@ def failed(e):
         return message_page("The database is starting up",
                             "The SQL warehouse behind this page was asleep and has not answered yet. It usually wakes up "
                             "within a minute or two; reload the page then.", str(e), 503)
-    return message_page("The Literature Update could not be loaded",
+    return message_page("The Literature Surveillance could not be loaded",
                         "Reading the articles from the database failed. Reload the page; if it keeps happening, the "
                         "detail below helps whoever looks after the app.", f"{e.__class__.__name__}: {e}")
 

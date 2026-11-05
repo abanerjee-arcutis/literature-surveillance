@@ -1,4 +1,4 @@
-"""The Literature Update page: template.html with its sample data replaced. The app builds it from the tables on every
+"""The Literature Surveillance page: template.html with its sample data replaced. The app builds it from the tables on every
 request; surveillance.py, run without --tables, writes it to a file."""
 import json
 import os

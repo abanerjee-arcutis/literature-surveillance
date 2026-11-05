@@ -3,7 +3,7 @@
 One script. Searches PubMed, OpenAlex and Google Scholar for a list of terms, merges the same article
 found by several sources into one record, filters with exclusion rules, tags each article (disease,
 product, study type, access level, sponsor, priority), writes a summary from the abstract, and renders
-the Literature Update page.
+the Literature Surveillance page.
 
 To run it daily on Databricks with a shared review page, follow [DEPLOY.md](DEPLOY.md).
 

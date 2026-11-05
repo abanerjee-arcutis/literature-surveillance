@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Literature Update</title>
+<title>Literature Surveillance</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f6e6b'/%3E%3Cpath d='M10 7h9l4 4v14H10z' fill='none' stroke='white' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M13 15h7M13 19h7' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -305,7 +305,7 @@
   <div class="topin">
     <div class="head">
       <div>
-        <div class="brand">Literature Update</div>
+        <div class="brand">Literature Surveillance</div>
         <div class="sub" id="runLine">PubMed and Google Scholar surveillance · sample batch, 30 Jun 2026</div>
       </div>
       <div class="hright">
@@ -526,7 +526,7 @@
 <div class="overlay" id="help" hidden>
   <div class="modal help" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
     <div class="mhead">
-      <div class="h2" id="helpTitle">How the Literature Update works</div>
+      <div class="h2" id="helpTitle">How the Literature Surveillance works</div>
       <button class="icon" data-close="help" title="Close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </div>
     <div class="mbody help">
@@ -1545,8 +1545,8 @@ function digest(rows, withSummary) {
   rows.forEach(a => counts[a.prio] = (counts[a.prio] || 0) + 1);
   const today = new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
   let html = `<div style="font-family:Segoe UI,Calibri,Arial,sans-serif;font-size:14px;line-height:1.45;color:#1f1f1c">` +
-    `<p style="margin:0 0 2px;font-size:16px"><b>Literature update, ${esc(today)}</b></p><p style="margin:0 0 14px;color:#6b6a64">${esc(scopeText(rows))}</p>`;
-  let text = `Literature update, ${today}\n${scopeText(rows)}\n`, band = null;
+    `<p style="margin:0 0 2px;font-size:16px"><b>Literature surveillance, ${esc(today)}</b></p><p style="margin:0 0 14px;color:#6b6a64">${esc(scopeText(rows))}</p>`;
+  let text = `Literature surveillance, ${today}\n${scopeText(rows)}\n`, band = null;
   rows.forEach(a => {
     if (a.prio !== band) {
       band = a.prio;

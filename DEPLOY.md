@@ -17,7 +17,7 @@ most of it waiting for access or keys.
 
 - A **job** runs `surveillance.py` every morning. It searches PubMed, OpenAlex and Google Scholar,
   merges duplicates, and writes the articles to the **articles table** and what it did to the **runs table**.
-- An **app** (a private web page inside Databricks) builds the Literature Update page from the tables
+- An **app** (a private web page inside Databricks) builds the Literature Surveillance page from the tables
   each time someone opens it. Accept / Ignore / Restore clicks, with the reasons ticked for each accept
   or ignore, are saved to the **decisions table**, and the Settings dialog (search terms and sources) to
   the **settings table**, so the next run uses them. The app runs its SQL on a **SQL warehouse**.
@@ -213,7 +213,7 @@ This deploys the app code and starts it. It takes a minute or two and prints the
 find the URL under **Compute → Apps → literature-surveillance**. Open it. The first time, Databricks asks you to authorize
 the app; accept.
 
-You should see the Literature Update page. Accept an article, reload the page: it stays in the
+You should see the Literature Surveillance page. Accept an article, reload the page: it stays in the
 Accepted feed, and `SELECT * FROM medical_prod.apps.literature_surveillance_decisions` shows it.
 
 ---
@@ -274,7 +274,7 @@ running, whether or not anyone looks at it. Ask your admin what that costs in yo
 | Job fails: `Table medical_prod.apps.literature_surveillance_… does not exist or you can't read it` | run `tables.sql` (Step 3). If it exists, you need SELECT and MODIFY on the four tables |
 | Deploy says `CATALOG_DOES_NOT_EXIST` | the catalog or schema in `databricks.yml` doesn't exist. `databricks catalogs list` shows the catalogs you have; use the same names in `app/app.yaml` |
 | App page says **The database is starting up** | the SQL warehouse was stopped and took over two minutes to start; reload. If it happens often, raise the warehouse's auto-stop time (SQL Warehouses → the warehouse → Edit) |
-| App page says **The Literature Update could not be loaded** | a query failed; its message is under *Technical detail*. Often a permission (rows below) or a table renamed in `app/app.yaml` |
+| App page says **The Literature Surveillance could not be loaded** | a query failed; its message is under *Technical detail*. Often a permission (rows below) or a table renamed in `app/app.yaml` |
 | App page says **No articles yet** | the runs table is empty: the job hasn't run since the tables were created; run Step 8, or check `LITSURV_TABLES` in `app/app.yaml` |
 | App shows an error mentioning permission, `403`, `TABLE_OR_VIEW_NOT_FOUND` or `INSUFFICIENT_PERMISSIONS` | give the app's service principal access. Run `databricks apps get literature-surveillance` and copy `service_principal_client_id`, then in the SQL editor: <br>`GRANT USE CATALOG ON CATALOG medical_prod TO \`<that id>\`;`<br>`GRANT USE SCHEMA ON SCHEMA medical_prod.apps TO \`<that id>\`;`<br>`GRANT SELECT ON TABLE medical_prod.apps.literature_surveillance_articles TO \`<that id>\`;`<br>`GRANT SELECT ON TABLE medical_prod.apps.literature_surveillance_runs TO \`<that id>\`;`<br>`GRANT SELECT, MODIFY ON TABLE medical_prod.apps.literature_surveillance_decisions TO \`<that id>\`;`<br>`GRANT SELECT, MODIFY ON TABLE medical_prod.apps.literature_surveillance_settings TO \`<that id>\`;`<br>and on the SQL warehouse's **Permissions**, give it **Can use** |
 | `bundle validate` or `deploy` says the warehouse can't be found | `warehouse_id` in `databricks.yml` must name a SQL warehouse exactly as **SQL Warehouses** lists it, and you need **Can use** on it |
