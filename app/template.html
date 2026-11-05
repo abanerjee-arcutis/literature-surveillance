@@ -43,7 +43,7 @@
   .feedtabs .tab[data-go="accepted"]{--t-bg:#eaf3ec;--t-bg2:#d9eadd;--t-line:#c9dfce;--t-ink:#2f6b3f}
   .feedtabs .tab[data-go="review"]{--t-bg:#e8f0f7;--t-bg2:#d6e5f2;--t-line:#c6d9ea;--t-ink:#2c5f8a}
   .feedtabs .tab[data-go="ignored"]{--t-bg:#efeeeb;--t-bg2:#e2e1dc;--t-line:#d8d6d0;--t-ink:#6b6a64}
-  .feedtabs .tab[data-go="bookmarked"]{--t-bg:#fbf1da;--t-bg2:#f6e4b8;--t-line:#ecd9a8;--t-ink:#8a5a0c}
+  .feedtabs .tab[data-go="bookmarked"]{--t-bg:#f6f5f2;--t-bg2:#eae8e2;--t-line:#dedcd5;--t-ink:#3d3c38}
   .feedtabs .tab[data-go="bookmarked"] svg{width:14px;height:14px}
   .feedtabs .tab[data-go="bookmarked"].active svg{fill:currentColor}
   .count{font-size:11px;font-weight:500;padding:1px 7px;border-radius:999px;background:#ececea;color:#5b5a55}
@@ -106,9 +106,9 @@
   /* tables */
   .table{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
   .thead,.trow{display:grid;gap:12px;align-items:center;padding:11px 16px}
-  .feed .thead,.feed .trow{grid-template-columns:minmax(0,1fr) 92px 120px 132px 104px 116px 84px 60px 116px;gap:10px}
+  .feed .thead,.feed .trow{grid-template-columns:minmax(0,1fr) 92px 120px 132px 104px 116px 84px 60px 72px;gap:10px}
   .cell.safety{color:var(--warn);font-weight:500}
-  .out .thead,.out .trow{grid-template-columns:minmax(0,1fr) 92px 140px 140px 260px 132px}
+  .out .thead,.out .trow{grid-template-columns:minmax(0,1fr) 92px 140px 140px 260px 84px}
   .sorth{cursor:pointer;user-select:none;white-space:nowrap}
   .sorth:hover{color:var(--ink)}
   .sorth .arr{margin-left:4px;color:var(--accent)}
@@ -152,10 +152,14 @@
   .icon.rnd[data-to="accepted"]{--t-bg:#eaf3ec;--t-bg2:#d9eadd;--t-ink:#2f6b3f}
   .icon.rnd[data-to="review"]{--t-bg:#e8f0f7;--t-bg2:#d6e5f2;--t-ink:#2c5f8a}
   .icon.rnd[data-to="ignored"]{--t-bg:#efeeeb;--t-bg2:#e2e1dc;--t-ink:#6b6a64}
-  .icon.rnd.bm{--t-bg:#fbf1da;--t-bg2:#f6e4b8;--t-ink:#8a5a0c}
-  .icon.rnd.bm.on,.trow:hover .icon.rnd.bm.on{background:var(--t-ink);color:#fff}
-  .icon.rnd.bm.on svg{fill:currentColor}
-  .btn.bm.on{background:#fbf1da;border-color:#8a5a0c;color:#8a5a0c}
+  /* bookmark: a neutral ribbon at the end of the title, the same size as the title text */
+  .ttl.inl{display:inline;width:auto}
+  .bmk{display:inline-flex;vertical-align:-2px;margin-left:6px;width:1em;height:1em;padding:0;border:0;background:none;color:#a5a49e;font-size:14px}
+  .bmk svg{width:1em;height:1em}
+  .bmk:hover,.bmk:focus-visible{color:var(--ink)}
+  .bmk.on{color:var(--ink2)}
+  .bmk.on svg{fill:currentColor}
+  .btn.bm.on{background:var(--hover);border-color:#8a8983;color:var(--ink)}
   .btn.bm svg{width:13px;height:13px;vertical-align:-2px;margin-right:5px}
   .btn.bm.on svg{fill:currentColor}
   .empty{padding:36px;text-align:center;color:var(--mute)}
@@ -290,7 +294,7 @@
 
   @media (max-width:960px){
     .two{flex-direction:column}.side{width:100%}
-    .feed .thead,.feed .trow,.out .thead,.out .trow{grid-template-columns:minmax(0,1fr) 116px}
+    .feed .thead,.feed .trow,.out .thead,.out .trow{grid-template-columns:minmax(0,1fr) 76px}
     .feed .thead div:nth-child(n+2):not(:last-child),.feed .trow>div:nth-child(n+2):not(:last-child),
     .out .thead div:nth-child(n+2):not(:last-child),.out .trow>div:nth-child(n+2):not(:last-child){display:none}
     .rules{grid-template-columns:1fr}.topin,.wrap{padding-left:16px;padding-right:16px}
@@ -354,7 +358,7 @@
     <button class="tab" data-go="accepted">Accepted feed <span class="count" id="c-accepted">0</span></button>
     <button class="tab active" data-go="review">Review feed <span class="count" id="c-review">0</span></button>
     <button class="tab" data-go="ignored">Ignored feed <span class="count" id="c-ignored">0</span></button>
-    <button class="tab" data-go="bookmarked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>Bookmarked <span class="count" id="c-bookmarked">0</span></button>
+    <button class="tab" data-go="bookmarked" style="margin-left:auto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>Bookmarked <span class="count" id="c-bookmarked">0</span></button>
   </div>
 
   <!-- Accepted feed -->
@@ -737,7 +741,7 @@ const ICON = { bookmark: svg('<path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0
 const ROW_ACTIONS = { review: [['accepted', 'Accept'], ['ignored', 'Ignore']], accepted: [['review', 'Move back to review'], ['ignored', 'Ignore']],
                        ignored: [['review', 'Restore to review feed'], ['accepted', 'Accept']] };   // ignored: only in the bookmarked list
 // the round bookmark button of a row; `on` fills it
-const bmButton = a => `<button class="icon rnd bm${a.bookmarked ? ' on' : ''}" data-bm title="${a.bookmarked ? 'Remove bookmark' : 'Bookmark'}" aria-label="${a.bookmarked ? 'Remove bookmark' : 'Bookmark'}" aria-pressed="${!!a.bookmarked}">${ICON.bookmark}</button>`;
+const bmButton = a => `<button class="bmk${a.bookmarked ? ' on' : ''}" data-bm title="${a.bookmarked ? 'Remove bookmark' : 'Bookmark'}" aria-label="${a.bookmarked ? 'Remove bookmark' : 'Bookmark'}" aria-pressed="${!!a.bookmarked}">${ICON.bookmark}</button>`;
 const DETAIL_ACTIONS = { review: [['accepted', 'Accept'], ['ignored', 'Ignore']], accepted: [['review', 'Move back to review'], ['ignored', 'Ignore']], ignored: [['review', 'Restore to review feed'], ['accepted', 'Accept']] };
 
 function normDecision(d) { return d === 'removed' ? 'ignored' : (d || null); }   // 'removed' is the older name for 'ignored'
@@ -834,13 +838,13 @@ const newBadge = a => isNew(a) ? `<span class="new" title="Found in the last 7 d
 function feedRow(a, feed, from = feed) {   // feed: the buttons and notes it gets; from: the list it is shown in
   const r = document.createElement('div'); r.className = 'trow';
   const why = a.reasons.join(' · '), auto = feed === 'accepted' && !a.decision && a.auto, by = decidedLine(a);
-  r.innerHTML = `<div style="min-width:0"><button class="ttl" title="${esc(a.title)}">${esc(a.title)}</button><div class="meta">${newBadge(a)}${esc(a.meta)}</div>${why ? `<div class="rsn" title="${esc(by || DECIDED_VERB[a.decision] || 'Decided')} because: ${esc(why)}">${a.decision === 'ignored' ? ICON.ignored : ICON.accepted}<span>${esc(why)}</span></div>` : auto ? `<div class="rsn auto" title="Accepted automatically: ${esc(a.auto)}">${autoIcon(a)}<span>${esc(a.auto)}</span></div>` : ''}</div>
+  r.innerHTML = `<div style="min-width:0"><button class="ttl inl" title="${esc(a.title)}">${esc(a.title)}</button>${bmButton(a)}<div class="meta">${newBadge(a)}${esc(a.meta)}</div>${why ? `<div class="rsn" title="${esc(by || DECIDED_VERB[a.decision] || 'Decided')} because: ${esc(why)}">${a.decision === 'ignored' ? ICON.ignored : ICON.accepted}<span>${esc(why)}</span></div>` : auto ? `<div class="rsn auto" title="Accepted automatically: ${esc(a.auto)}">${autoIcon(a)}<span>${esc(a.auto)}</span></div>` : ''}</div>
     ${dateCell(a)}${srcCell(a)}
     <div class="cell">${esc(a.term)}</div><div class="cell">${esc(a.dz.join(', '))}</div>
     <div class="cell${a.intent === 'Safety' ? ' safety' : ''}" title="${esc(a.intent_why)}">${esc(a.intent)}</div>
     <div><span class="pill ${ACCESS[a.access]}">${esc(a.access)}</span></div>
     <div class="prio" style="color:${PRIO[a.prio] || 'inherit'}" title="${esc(prioTitle(a))}">${esc(a.prio)}${a.l3.length ? `<span class="l3" role="img" aria-label="L3 keyword: ${esc(a.l3.join(', '))}" title="L3 keyword: ${esc(a.l3.join(', '))}">${svg('<path d="m5 12 7-7 7 7M12 19V5"/>')}</span>` : ''}<small>${a.score} points</small></div>
-    <div class="acts">${bmButton(a)}${ROW_ACTIONS[feed].map(([to, label]) => `<button class="icon rnd" data-to="${to}" title="${label}" aria-label="${label}">${ICON[to]}</button>`).join('')}</div>`;
+    <div class="acts">${ROW_ACTIONS[feed].map(([to, label]) => `<button class="icon rnd" data-to="${to}" title="${label}" aria-label="${label}">${ICON[to]}</button>`).join('')}</div>`;
   r.querySelector('button.ttl').onclick = () => showDetail(a, from);
   r.querySelectorAll('[data-to]').forEach(b => b.onclick = () => decide(a, b.dataset.to));
   r.querySelector('[data-bm]').onclick = () => toggleBookmark(a);
@@ -849,11 +853,11 @@ function feedRow(a, feed, from = feed) {   // feed: the buttons and notes it get
 
 function ignoredRow(a, from = 'ignored') {
   const r = document.createElement('div'); r.className = 'trow';
-  r.innerHTML = `<div style="min-width:0"><button class="ttl" title="${esc(a.title)}">${esc(a.title)}</button><div class="meta">${esc(a.meta)}</div></div>
+  r.innerHTML = `<div style="min-width:0"><button class="ttl inl" title="${esc(a.title)}">${esc(a.title)}</button>${bmButton(a)}<div class="meta">${esc(a.meta)}</div></div>
     ${dateCell(a)}${srcCell(a)}
     <div class="cell">${esc(a.term)}</div>
     <div style="display:flex;align-items:center;gap:8px;min-width:0" title="${esc([decidedLine(a), reasonNote(a)].filter(Boolean).join(': '))}"><span class="pill ${RULE_CLASS[reason(a)] || 'p-grey'}">${esc(reason(a))}</span><span class="cell" style="color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(reasonNote(a))}</span></div>
-    <div class="acts" style="align-items:center">${bmButton(a)}<button class="btn small">Restore</button></div>`;
+    <button class="btn small">Restore</button>`;
   r.querySelector('button.ttl').onclick = () => showDetail(a, from);
   r.querySelector('button.btn').onclick = () => decide(a, 'review');
   r.querySelector('[data-bm]').onclick = () => toggleBookmark(a);
