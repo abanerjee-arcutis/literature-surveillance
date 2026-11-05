@@ -1,0 +1,3455 @@
+{
+ "rules": [
+  {
+   "kind": "ci_fix",
+   "name": "Drugs for atopic dermatitis",
+   "rank": 1,
+   "pattern": "{\"title_guess\": \"Drugs for atopic dermatitis\"}",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "ci_fix",
+   "name": "Naldi L, et al.",
+   "rank": 2,
+   "pattern": "{\"title_guess\": \"Practical Recommendations For Seborrheic Dermatitis Management: An Expert Consensus\"}",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "ci_fix",
+   "name": "Capper I, Hughes A.",
+   "rank": 3,
+   "pattern": "{\"title_guess\": \"A Review of Male Genital Psoriasis\"}",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "ci_fix",
+   "name": "Foroohar T, et al.",
+   "rank": 4,
+   "pattern": "{\"dois\": []}",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "ci_fix",
+   "name": "Almansouri D, et al.",
+   "rank": 5,
+   "pattern": "{\"dois\": [\"10.1080/14656566.2026.2695100\"]}",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "ci_fix",
+   "name": "Longowal M, Maruschak-Love SO.",
+   "rank": 6,
+   "pattern": "{\"title_guess\": \"Vitiligo Successfully Treated With Roflumilast Cream 0.3%\"}",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "ci_fix",
+   "name": "Luijk S, et al.",
+   "rank": 7,
+   "pattern": "{\"dois\": []}",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "ci_fix",
+   "name": "Bowling HM, Oberlin DM",
+   "rank": 8,
+   "pattern": "{\"title_guess\": \"Rapid Improvement of Darier Disease with Topical Roflumilast: A Case Report\"}",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "ci_fix",
+   "name": "Derman C.",
+   "rank": 9,
+   "pattern": "{\"dois\": [], \"not_literature\": \"HCPLive news article\"}",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "ci_fix",
+   "name": "Johnson V.",
+   "rank": 10,
+   "pattern": "{\"dois\": [], \"not_literature\": \"HCPLive news article\"}",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "ci_fix",
+   "name": "Waqas M, et al.",
+   "rank": 11,
+   "pattern": "{\"dois\": []}",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "ci_fix",
+   "name": "Zhang K, et al. Eczema Herpeticum",
+   "rank": 12,
+   "pattern": "{\"title_guess\": \"Eczema herpeticum after topical ruxolitinib use: A report of 2 cases\"}",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "ci_window",
+   "name": "backtest",
+   "rank": null,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": [
+    "2025-12-20",
+    "2026-10-10"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": "An unemailed article dated outside the emails' months can't count against them",
+   "active": true
+  },
+  {
+   "kind": "default",
+   "name": "disease",
+   "rank": null,
+   "pattern": "Other",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "default",
+   "name": "study_type",
+   "rank": null,
+   "pattern": "Article",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "default",
+   "name": "intent",
+   "rank": null,
+   "pattern": "Other",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "disease",
+   "name": "Psoriasis",
+   "rank": 1,
+   "pattern": "psoria",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "disease",
+   "name": "Atopic Dermatitis",
+   "rank": 2,
+   "pattern": "atopic|eczema|hand dermatitis|hand eczema",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "disease",
+   "name": "Seb Derm",
+   "rank": 3,
+   "pattern": "seborrh",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "disease",
+   "name": "HS",
+   "rank": 4,
+   "pattern": "hidradenitis",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "disease",
+   "name": "Vitiligo",
+   "rank": 5,
+   "pattern": "vitiligo",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "exclusion",
+   "name": "Transplant / haematology context",
+   "rank": 1,
+   "pattern": "(?i)\\b(GVHD|graft.versus.host|myelofibrosis|polycythemia|transplant)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": "title_abstract",
+   "weight": null,
+   "note": "Oral ruxolitinib / JAK literature",
+   "active": true
+  },
+  {
+   "kind": "exclusion",
+   "name": "COPD / respiratory",
+   "rank": 2,
+   "pattern": "(?i)\\b(COPD|pulmonary|asthma|bronch)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": "title",
+   "weight": null,
+   "note": "Oral roflumilast's respiratory literature",
+   "active": true
+  },
+  {
+   "kind": "exclusion",
+   "name": "Veterinary",
+   "rank": 3,
+   "pattern": "(?i)\\b(canine|feline|veterinary|dogs?|cats?)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": "title",
+   "weight": null,
+   "note": "Animal dermatology",
+   "active": true
+  },
+  {
+   "kind": "exclusion",
+   "name": "Oral JAK inhibitor (systemic)",
+   "rank": 4,
+   "pattern": "(?i)\\boral (tofacitinib|upadacitinib|abrocitinib|baricitinib|ruxolitinib)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": "title",
+   "weight": null,
+   "note": "Systemic JAK use caught by the topical JAK term",
+   "active": true
+  },
+  {
+   "kind": "intent_abstract_rule",
+   "name": "Efficacy",
+   "rank": 1,
+   "pattern": "\\b(randomi[sz]ed|double.blind|vehicle.controlled|phase (2|3|ii|iii))\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "intent_abstract_rule",
+   "name": "Real-world use",
+   "rank": 2,
+   "pattern": "\\b(real.world|retrospective|registry|claims|cohort)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "intent_abstract_rule",
+   "name": "Mechanism",
+   "rank": 3,
+   "pattern": "\\b(mice|murine|in vitro|in vivo)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "intent_label",
+   "name": "Safety",
+   "rank": 1,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "intent_label",
+   "name": "Efficacy",
+   "rank": 2,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "intent_label",
+   "name": "Real-world use",
+   "rank": 3,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "intent_label",
+   "name": "Mechanism",
+   "rank": 4,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "intent_label",
+   "name": "Disease state",
+   "rank": 5,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "intent_label",
+   "name": "Patient perspective",
+   "rank": 6,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "intent_label",
+   "name": "Review & guidance",
+   "rank": 7,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "intent_label",
+   "name": "Other",
+   "rank": 8,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "intent_rule",
+   "name": "Mechanism",
+   "rank": 1,
+   "pattern": "\\b(mice|mouse|murine|rats?|in vitro|in vivo|in silico|cell lines?)\\b",
+   "unless_pattern": null,
+   "match_values": [
+    "Preclinical"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "intent_rule",
+   "name": "Safety",
+   "rank": 2,
+   "pattern": "\\b(adverse|side.effects?|toxicit\\w*|tolerab\\w*|safety (of|profile|signals?|concerns?|data|outcomes?)|long.term safety|allergic|hypersensitivit\\w*|withdrawal|cushing|herpeticum|malignan\\w*|pharmacovigilance|boxed warning)\\b|\\b\\w+-(induced|associated|related)\\b|\\b(after|following)\\b[^:;.]{0,60}?\\b(use|therapy|treatment|injection|exposure)\\b",
+   "unless_pattern": "\\b(efficacy|effectiveness|managed|treated|successful\\w*|treatment of|management of)\\b",
+   "match_values": [],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "intent_rule",
+   "name": "Review & guidance",
+   "rank": 3,
+   "pattern": "\\b((?<!chart )reviews?|consensus|guidelines?|recommendations|expert opinion|delphi|bibliometric)\\b",
+   "unless_pattern": null,
+   "match_values": [
+    "Book chapter",
+    "Comment",
+    "Editorial",
+    "Meta-analysis",
+    "Review",
+    "Systematic review"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "intent_rule",
+   "name": "Mechanism",
+   "rank": 4,
+   "pattern": "\\b(mechanisms?|pathways?|pharmacolog\\w*|pharmacokinetic\\w*|physicochemical|formulation|nano\\w*|permeation|membranes?|transcriptom\\w*|oxidation|immunopatholog\\w*)\\b",
+   "unless_pattern": "\\b(efficacy|effectiveness)\\b",
+   "match_values": [],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "intent_rule",
+   "name": "Efficacy",
+   "rank": 5,
+   "pattern": "\\b(randomi[sz]ed|trials?|phase (2|3|ii|iii)|double.blind|vehicle.controlled|open.label)\\b",
+   "unless_pattern": null,
+   "match_values": [
+    "Phase 2",
+    "Phase 3",
+    "RCT"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "intent_rule",
+   "name": "Real-world use",
+   "rank": 6,
+   "pattern": "\\breal.world\\b",
+   "unless_pattern": null,
+   "match_values": [],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "intent_rule",
+   "name": "Disease state",
+   "rank": 7,
+   "pattern": "\\b(prevalence|incidence|epidemiolog\\w*|burden|comorbid\\w*|risk of|quality.of.life|psychiatric|mental health|depressi\\w*|anxiety)\\b",
+   "unless_pattern": null,
+   "match_values": [],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "intent_rule",
+   "name": "Real-world use",
+   "rank": 8,
+   "pattern": "\\b(retrospective|registry|claims|database|cohort|chart review|electronic health|utili[sz]ation|prescri\\w*|costs?|medicare|medicaid)\\b",
+   "unless_pattern": null,
+   "match_values": [
+    "Comparative",
+    "Real-world"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "intent_rule",
+   "name": "Patient perspective",
+   "rank": 9,
+   "pattern": "\\b(survey|preferences?|patient experience|perspectives?|perceptions?|satisfaction|adherence|qualitative|questionnaire|social media)\\b",
+   "unless_pattern": null,
+   "match_values": [
+    "Survey"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "intent_rule",
+   "name": "Disease state",
+   "rank": 10,
+   "pattern": "\\b(associat\\w*|diagnos\\w*|mimick\\w*|masked|pitfall|manifestations?|presentation|rare|pathogen\\w*|pathophysiolog\\w*|phenotyp\\w*)\\b",
+   "unless_pattern": null,
+   "match_values": [],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "intent_rule",
+   "name": "Efficacy",
+   "rank": 11,
+   "pattern": "\\b(efficacy|effective\\w*|successful\\w*|improv\\w*|respon\\w*|treated|treatment|treating|clearance|resolution|remission|repigmentation|outcomes?|managed)\\b",
+   "unless_pattern": null,
+   "match_values": [],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "intent_rule",
+   "name": "Efficacy",
+   "rank": 12,
+   "pattern": "\\b(for|with)\\b",
+   "unless_pattern": null,
+   "match_values": [
+    "Case report",
+    "Letter"
+   ],
+   "applies_to": "study_type_and_title",
+   "weight": null,
+   "note": "{study_type} about a treatment",
+   "active": true
+  },
+  {
+   "kind": "intent_rule",
+   "name": "Disease state",
+   "rank": 13,
+   "pattern": "^",
+   "unless_pattern": null,
+   "match_values": [
+    "Case report",
+    "Letter"
+   ],
+   "applies_to": "study_type_and_title",
+   "weight": null,
+   "note": "{study_type} without a treatment in the title",
+   "active": true
+  },
+  {
+   "kind": "keyword",
+   "name": "Roflumilast",
+   "rank": 1,
+   "pattern": "\\broflumilast\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "keyword",
+   "name": "Tapinarof",
+   "rank": 2,
+   "pattern": "\\btapinarof\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "keyword",
+   "name": "Ruxolitinib",
+   "rank": 3,
+   "pattern": "\\bruxolitinib\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "keyword",
+   "name": "Delgocitinib",
+   "rank": 4,
+   "pattern": "\\bdelgocitinib\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "keyword",
+   "name": "Orismilast",
+   "rank": 5,
+   "pattern": "\\borismilast\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "keyword",
+   "name": "Crisaborole",
+   "rank": 6,
+   "pattern": "\\bcrisaborole\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "keyword",
+   "name": "Apremilast",
+   "rank": 7,
+   "pattern": "\\bapremilast\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "keyword",
+   "name": "Topical corticosteroids",
+   "rank": 8,
+   "pattern": "\\b(topical (cortico)?steroids?|TCS)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "keyword",
+   "name": "Calcineurin inhibitors",
+   "rank": 9,
+   "pattern": "\\b(tacrolimus|pimecrolimus|calcineurin inhibitors?|TCIs?)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "keyword",
+   "name": "Biologics",
+   "rank": 10,
+   "pattern": "\\b(biologics?|dupilumab|tralokinumab|lebrikizumab|nemolizumab|secukinumab|ixekizumab|bimekizumab|risankizumab|guselkumab|tildrakizumab|ustekinumab|adalimumab|etanercept|infliximab)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "keyword",
+   "name": "Oral JAK / TYK2 inhibitors",
+   "rank": 11,
+   "pattern": "\\b(upadacitinib|abrocitinib|baricitinib|tofacitinib|deucravacitinib|oral JAK)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "keyword",
+   "name": "Phototherapy",
+   "rank": 12,
+   "pattern": "\\b(phototherapy|NB-?UVB|narrow.?band|excimer)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "keyword",
+   "name": "Pediatric",
+   "rank": 13,
+   "pattern": "\\b(pa?ediatric|children|child|adolescents?|juvenile)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "keyword",
+   "name": "Infants",
+   "rank": 14,
+   "pattern": "\\b(infants?|infantile|toddlers?|neonat\\w*)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "keyword",
+   "name": "Older adults",
+   "rank": 15,
+   "pattern": "\\b(elderly|older (adults|patients)|geriatric)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "keyword",
+   "name": "Skin of color",
+   "rank": 16,
+   "pattern": "\\b(skin of colou?r|black (patients|individuals|adults|children)|african.american|hispanic|fitzpatrick (skin )?(types? )?(iv|v|vi))\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "keyword",
+   "name": "Pregnancy",
+   "rank": 17,
+   "pattern": "\\b(pregnan\\w*|lactat\\w*|breast.?feed\\w*)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "keyword",
+   "name": "Face",
+   "rank": 18,
+   "pattern": "\\b(face|facial|eyelids?|periorbital|perioral)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "keyword",
+   "name": "Scalp",
+   "rank": 19,
+   "pattern": "\\bscalp\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "keyword",
+   "name": "Intertriginous / genital",
+   "rank": 20,
+   "pattern": "\\b(intertrigin\\w*|genital\\w*|inverse psoriasis|skin folds?|flexur\\w*)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "keyword",
+   "name": "Hands",
+   "rank": 21,
+   "pattern": "\\b(hand (eczema|dermatitis)|palms?|palmoplantar)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "keyword",
+   "name": "Nails",
+   "rank": 22,
+   "pattern": "\\bnails?\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "keyword",
+   "name": "Long-term",
+   "rank": 23,
+   "pattern": "\\b(long.term|open.label extension|(5[2-9]|[6-9]\\d|1\\d\\d)[- ]weeks?)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "keyword",
+   "name": "Head-to-head",
+   "rank": 24,
+   "pattern": "\\b(head.to.head|(versus|vs\\.?|compared (with|to)) (?!vehicle|placebo|baseline|controls?|healthy)[a-z])",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "keyword",
+   "name": "Pooled / post hoc",
+   "rank": 25,
+   "pattern": "\\b(pooled|post.hoc|subgroup analys[ie]s)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "keyword",
+   "name": "Itch",
+   "rank": 26,
+   "pattern": "\\b(prurit\\w*|itch\\w*)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "keyword",
+   "name": "Quality of life",
+   "rank": 27,
+   "pattern": "\\b(quality.of.life|C?DLQI)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "l3_band",
+   "name": "Must read",
+   "rank": null,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": [
+    "auto_accept"
+   ],
+   "applies_to": null,
+   "weight": 85,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "l3_band",
+   "name": "Of interest",
+   "rank": null,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": 60,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "l3_band",
+   "name": "FYI",
+   "rank": null,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": 40,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "l3_band",
+   "name": "Low",
+   "rank": null,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": 0,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "l3_param",
+   "name": "own_keyword_points",
+   "rank": null,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": 60,
+   "note": "Points an L3 keyword saved in Settings is worth",
+   "active": true
+  },
+  {
+   "kind": "not_article_title",
+   "name": "dataset title",
+   "rank": 1,
+   "pattern": "\\b(data(sets?)?|supplement\\w*|supporting information|tables?|figures?|raw|pdb)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": "An OpenAlex 'dataset' counts as data only when its title says so",
+   "active": true
+  },
+  {
+   "kind": "not_article_type",
+   "name": "grant",
+   "rank": 1,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "not_article_type",
+   "name": "paratext",
+   "rank": 2,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "not_article_type",
+   "name": "peer-review",
+   "rank": 3,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "not_article_type",
+   "name": "supplementary-materials",
+   "rank": 4,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "openalex_type",
+   "name": "Review",
+   "rank": 1,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": [
+    "review"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "openalex_type",
+   "name": "Letter",
+   "rank": 2,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": [
+    "letter"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "openalex_type",
+   "name": "Editorial",
+   "rank": 3,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": [
+    "editorial"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "openalex_type",
+   "name": "Published Erratum",
+   "rank": 4,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": [
+    "erratum"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "openalex_type",
+   "name": "Preprint",
+   "rank": 5,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": [
+    "preprint"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "openalex_type",
+   "name": "Book chapter",
+   "rank": 6,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": [
+    "book-chapter"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "openalex_type",
+   "name": "Retraction of Publication",
+   "rank": 7,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": [
+    "retraction"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "reason_accepted",
+   "name": "New efficacy data",
+   "rank": 1,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "reason_accepted",
+   "name": "Safety signal",
+   "rank": 2,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "reason_accepted",
+   "name": "Competitive intelligence",
+   "rank": 3,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "reason_accepted",
+   "name": "Supports our positioning",
+   "rank": 4,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "reason_accepted",
+   "name": "Unmet need",
+   "rank": 5,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "reason_accepted",
+   "name": "Off-label use",
+   "rank": 6,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "reason_accepted",
+   "name": "Guidelines / consensus",
+   "rank": 7,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "reason_accepted",
+   "name": "Useful for MSLs",
+   "rank": 8,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "reason_accepted",
+   "name": "Key author",
+   "rank": 9,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "reason_ignored",
+   "name": "Off-target",
+   "rank": 1,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "reason_ignored",
+   "name": "Disease out of scope",
+   "rank": 2,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "reason_ignored",
+   "name": "Oral / systemic use",
+   "rank": 3,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "reason_ignored",
+   "name": "Not dermatology",
+   "rank": 4,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "reason_ignored",
+   "name": "Preclinical only",
+   "rank": 5,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "reason_ignored",
+   "name": "Nothing new",
+   "rank": 6,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "reason_ignored",
+   "name": "Duplicate",
+   "rank": 7,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "reason_ignored",
+   "name": "Too little information",
+   "rank": 8,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "reason_ignored",
+   "name": "Low quality",
+   "rank": 9,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "reason_ignored",
+   "name": "Not in English",
+   "rank": 10,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "sponsor_company",
+   "name": "Arcutis",
+   "rank": 1,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "sponsor_company",
+   "name": "Incyte",
+   "rank": 2,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "sponsor_company",
+   "name": "Dermavant",
+   "rank": 3,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "sponsor_company",
+   "name": "Organon",
+   "rank": 4,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "sponsor_company",
+   "name": "LEO Pharma",
+   "rank": 5,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "sponsor_company",
+   "name": "Eli Lilly",
+   "rank": 6,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "sponsor_company",
+   "name": "Lilly",
+   "rank": 7,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "sponsor_company",
+   "name": "AbbVie",
+   "rank": 8,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "sponsor_company",
+   "name": "Pfizer",
+   "rank": 9,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "sponsor_company",
+   "name": "Sanofi",
+   "rank": 10,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "sponsor_company",
+   "name": "Regeneron",
+   "rank": 11,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "sponsor_company",
+   "name": "Amgen",
+   "rank": 12,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "sponsor_company",
+   "name": "Bristol Myers Squibb",
+   "rank": 13,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "sponsor_company",
+   "name": "Bristol-Myers Squibb",
+   "rank": 14,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "sponsor_company",
+   "name": "Novartis",
+   "rank": 15,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "sponsor_company",
+   "name": "UCB",
+   "rank": 16,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "sponsor_company",
+   "name": "Galderma",
+   "rank": 17,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "sponsor_company",
+   "name": "Union Therapeutics",
+   "rank": 18,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "sponsor_company",
+   "name": "Almirall",
+   "rank": 19,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "study_type",
+   "name": "Retraction notice",
+   "rank": 1,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": [
+    "Retraction of Publication"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "study_type",
+   "name": "Retracted",
+   "rank": 2,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": [
+    "Retracted Publication"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "study_type",
+   "name": "Erratum",
+   "rank": 3,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": [
+    "Published Erratum"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "study_type",
+   "name": "Preprint",
+   "rank": 4,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": [
+    "Preprint"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "study_type",
+   "name": "Comment",
+   "rank": 5,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": [
+    "Comment"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "study_type",
+   "name": "Conference abstract",
+   "rank": 6,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": [
+    "Congress"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "study_type",
+   "name": "Book chapter",
+   "rank": 7,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": [
+    "Book chapter"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "study_type",
+   "name": "Phase 3",
+   "rank": 8,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": [
+    "Clinical Trial, Phase III"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "study_type",
+   "name": "Phase 2",
+   "rank": 9,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": [
+    "Clinical Trial, Phase II"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "study_type",
+   "name": "RCT",
+   "rank": 10,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": [
+    "Randomized Controlled Trial"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "study_type",
+   "name": "Meta-analysis",
+   "rank": 11,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": [
+    "Meta-Analysis"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "study_type",
+   "name": "Systematic review",
+   "rank": 12,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": [
+    "Systematic Review"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "study_type",
+   "name": "Review",
+   "rank": 13,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": [
+    "Review"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "study_type",
+   "name": "Case report",
+   "rank": 14,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": [
+    "Case Reports"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "study_type",
+   "name": "Real-world",
+   "rank": 15,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": [
+    "Observational Study"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "study_type",
+   "name": "Comparative",
+   "rank": 16,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": [
+    "Comparative Study"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "study_type",
+   "name": "Letter",
+   "rank": 17,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": [
+    "Letter"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "study_type",
+   "name": "Editorial",
+   "rank": 18,
+   "pattern": null,
+   "unless_pattern": null,
+   "match_values": [
+    "Editorial"
+   ],
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "study_type_text",
+   "name": "Retracted",
+   "rank": 1,
+   "pattern": "^\\[?retracted",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "study_type_text",
+   "name": "Review",
+   "rank": 2,
+   "pattern": "\\b(bibliometric|scoping review|narrative review|literature review)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "study_type_text",
+   "name": "Case report",
+   "rank": 3,
+   "pattern": "\\bcase (report|series)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "study_type_text",
+   "name": "Real-world",
+   "rank": 4,
+   "pattern": "\\b(real.world|retrospective|cohort|registry|claims|database)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "study_type_text",
+   "name": "Survey",
+   "rank": 5,
+   "pattern": "\\b(survey|questionnaire)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "study_type_text",
+   "name": "Phase 3",
+   "rank": 6,
+   "pattern": "\\bphase (3|III)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  },
+  {
+   "kind": "study_type_text",
+   "name": "Preclinical",
+   "rank": 7,
+   "pattern": "\\b(in vitro|in vivo|mice|murine|cell line)\\b",
+   "unless_pattern": null,
+   "match_values": null,
+   "applies_to": null,
+   "weight": null,
+   "note": null,
+   "active": true
+  }
+ ],
+ "l3": [
+  {
+   "intent_id": "own_product",
+   "kind": "intent",
+   "intent": "Own product: topical roflumilast",
+   "weight": 100,
+   "why": "New data on topical roflumilast (cream or foam): case reports in new indications (lichen sclerosus, bullous pemphigoid, Darier, morphea, scarring alopecia), real-world and combination use, safety and pharmacovigilance, meta-analyses. Every one led its email; case reports go into the case report bibliography.",
+   "keyword_groups": [
+    {
+     "field": "title",
+     "keywords": [
+      "roflumilast",
+      "zoryve",
+      "arq 151",
+      "arq 154",
+      "arq 255"
+     ]
+    }
+   ],
+   "none_of": [
+    "copd",
+    "chronic obstructive",
+    "asthma",
+    "pulmonary",
+    "mice",
+    "mouse",
+    "murine",
+    "rats",
+    "in vitro",
+    "in silico",
+    "docking",
+    "nano",
+    "ethosom",
+    "niosom",
+    "liposom",
+    "hydrogel",
+    "microneedle",
+    "emulgel"
+   ],
+   "title_regex": null,
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "own_product_mention",
+   "kind": "intent",
+   "intent": "Roflumilast discussed in a broader article",
+   "weight": 65,
+   "why": "Reviews, consensus papers and comparisons whose abstract discusses roflumilast. The reviewer quotes how roflumilast is positioned next to competitors, including statements to correct.",
+   "keyword_groups": [
+    {
+     "field": "title_abstract",
+     "keywords": [
+      "roflumilast",
+      "zoryve",
+      "arq 151",
+      "arq 154",
+      "arq 255"
+     ]
+    },
+    {
+     "field": "title",
+     "keywords": [
+      "atopic",
+      "eczema",
+      "psoria",
+      "seborrh",
+      "dermatitis",
+      "topical",
+      "nonsteroidal",
+      "non steroidal",
+      "pde4",
+      "phosphodiesterase",
+      "skin",
+      "dermatolog"
+     ]
+    }
+   ],
+   "none_of": [
+    "copd",
+    "asthma",
+    "pulmonary",
+    "mice",
+    "mouse",
+    "murine",
+    "rats",
+    "in vitro",
+    "in silico",
+    "docking",
+    "nano",
+    "ethosom",
+    "niosom",
+    "liposom",
+    "hydrogel",
+    "microneedle",
+    "emulgel"
+   ],
+   "title_regex": null,
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "comparative",
+   "kind": "intent",
+   "intent": "Comparative evidence across topical non-steroidals",
+   "weight": 85,
+   "why": "Network meta-analyses, indirect comparisons and side-by-side safety reviews that rank roflumilast against tapinarof, ruxolitinib, delgocitinib or crisaborole. These need a response (the scalp NMA and the pediatric NMA were sent to Brett for comment).",
+   "keyword_groups": [
+    {
+     "field": "title",
+     "keywords": [
+      "network meta",
+      "indirect comparison",
+      "matching adjusted",
+      "head to head",
+      "versus",
+      "vs",
+      "compared",
+      "comparative",
+      "comparison",
+      "relative efficacy",
+      "model based meta"
+     ]
+    },
+    {
+     "field": "title_abstract",
+     "keywords": [
+      "roflumilast",
+      "zoryve",
+      "arq 151",
+      "arq 154",
+      "arq 255",
+      "tapinarof",
+      "benvitimod",
+      "vtama",
+      "ruxolitinib cream",
+      "topical ruxolitinib",
+      "ruxolitinib 1 5",
+      "opzelura",
+      "delgocitinib",
+      "anzupgo",
+      "crisaborole",
+      "difamilast",
+      "orismilast",
+      "ruxolitinib",
+      "roxulitinib",
+      "nonsteroidal",
+      "non steroidal"
+     ]
+    }
+   ],
+   "none_of": [
+    "graft",
+    "gvhd",
+    "vitiligo",
+    "alopecia"
+   ],
+   "title_regex": null,
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "guidelines",
+   "kind": "intent",
+   "intent": "Guidelines, consensus and position statements",
+   "weight": 85,
+   "why": "Guidelines, expert consensus, Delphi panels and position statements decide where topicals sit in the treatment algorithm (AAD pediatric AD guideline, NPF severity definitions, CHE and topical non-steroidal consensus, AhR consensus, genital psoriasis Delphi).",
+   "keyword_groups": [
+    {
+     "field": "title",
+     "keywords": [
+      "guideline",
+      "consensus",
+      "position statement",
+      "position paper",
+      "recommendation",
+      "delphi",
+      "expert panel",
+      "yardstick",
+      "good practice",
+      "practice parameter",
+      "statement paper",
+      "drugs for",
+      "comparison chart"
+     ]
+    },
+    {
+     "field": "title",
+     "keywords": [
+      "atopic",
+      "eczema",
+      "psoriasis",
+      "psoriatic lesion",
+      "plaque psoria",
+      "seborrh",
+      "hand dermatitis",
+      "topical",
+      "nonsteroidal",
+      "aryl hydrocarbon"
+     ]
+    }
+   ],
+   "none_of": [
+    "alopecia",
+    "hidradenitis",
+    "prurigo",
+    "arthritis",
+    "arthropathica",
+    "graft",
+    "canine",
+    "lupus",
+    "minoxidil",
+    "nemolizumab",
+    "lebrikizumab",
+    "dupilumab"
+   ],
+   "title_regex": null,
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "competitor_safety",
+   "kind": "intent",
+   "intent": "Competitor safety signal",
+   "weight": 80,
+   "why": "New adverse-event reports for competing topicals (tapinarof folliculitis, comedones and contact allergy; ruxolitinib eczema herpeticum; FAERS analyses; maximal-use exposure). Used in safety and differentiation conversations.",
+   "keyword_groups": [
+    {
+     "field": "title",
+     "keywords": [
+      "tapinarof",
+      "benvitimod",
+      "vtama",
+      "ruxolitinib cream",
+      "topical ruxolitinib",
+      "ruxolitinib 1 5",
+      "opzelura",
+      "delgocitinib",
+      "anzupgo",
+      "crisaborole",
+      "difamilast",
+      "orismilast",
+      "ruxolitinib"
+     ]
+    },
+    {
+     "field": "title",
+     "keywords": [
+      "adverse",
+      "safety",
+      "folliculitis",
+      "contact dermatitis",
+      "contact allergen",
+      "allergic",
+      "comedo",
+      "herpeticum",
+      "pharmacovigilance",
+      "adverse event reporting",
+      "induced",
+      "hyperpigmentation",
+      "acne",
+      "infection",
+      "boxed warning",
+      "malignan",
+      "patch test",
+      "systemic exposure",
+      "tolerability"
+     ]
+    }
+   ],
+   "none_of": [
+    "vitiligo",
+    "graft",
+    "myelofibrosis",
+    "efficacy",
+    "effectiveness"
+   ],
+   "title_regex": null,
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "tcs_harm",
+   "kind": "intent",
+   "intent": "Topical steroid harms",
+   "weight": 80,
+   "why": "Evidence of harm from topical corticosteroids: Cushing syndrome and HPA suppression in infants, type 2 diabetes risk, central serous retinopathy, raised eye pressure, barrier damage, allergens in formulations, tinea incognito. Supports non-steroidal first-line and maintenance use.",
+   "keyword_groups": [
+    {
+     "field": "title",
+     "keywords": [
+      "topical corticosteroid",
+      "topical steroid",
+      "topical glucocorticoid",
+      "corticosteroid",
+      "glucocorticoid",
+      "steroid",
+      "tcs",
+      "clobetasol",
+      "betamethasone",
+      "hydrocortisone",
+      "mometasone",
+      "triamcinolone",
+      "fluocinonide",
+      "desonide"
+     ]
+    },
+    {
+     "field": "title",
+     "keywords": [
+      "cushing",
+      "adrenal",
+      "hpa axis",
+      "hypothalamic",
+      "diabetes",
+      "retinopathy",
+      "chorioretinopathy",
+      "serous",
+      "intraocular",
+      "glaucoma",
+      "cataract",
+      "ocular",
+      "osteoporosis",
+      "fracture",
+      "iatrogenic",
+      "toxicity",
+      "barrier function",
+      "atrophy",
+      "striae",
+      "allergen",
+      "contact allergy",
+      "adverse event",
+      "adverse effect",
+      "side effect",
+      "tinea incognito",
+      "backfire",
+      "perioral dermatitis",
+      "risk of",
+      "burden",
+      "misuse",
+      "overuse",
+      "induced"
+     ]
+    }
+   ],
+   "none_of": [
+    "graft",
+    "gvhd",
+    "canine",
+    "rabbit"
+   ],
+   "title_regex": null,
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "tsw",
+   "kind": "intent",
+   "intent": "Topical steroid withdrawal (TSW)",
+   "weight": 75,
+   "why": "Reviews, case series and diagnostic work on topical steroid withdrawal. The reviewer sent the treatment update, the NIH 'dissecting the controversy' review and the updated systematic review; they serve as references for TSW conversations.",
+   "keyword_groups": [
+    {
+     "field": "title",
+     "keywords": [
+      "topical steroid withdrawal",
+      "topical corticosteroid withdrawal",
+      "steroid withdrawal",
+      "corticosteroid withdrawal",
+      "tsw",
+      "tcsw",
+      "red skin syndrome",
+      "steroid addiction"
+     ]
+    }
+   ],
+   "none_of": [],
+   "title_regex": null,
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "tcs_practice",
+   "kind": "intent",
+   "intent": "Topical steroid use patterns and stewardship",
+   "weight": 60,
+   "why": "How TCS are actually prescribed (potency escalation, quantities, response definitions, primary-care management). Context for where non-steroidals fit and for education programs.",
+   "keyword_groups": [
+    {
+     "field": "title",
+     "keywords": [
+      "topical corticosteroid",
+      "topical steroid",
+      "topical glucocorticoid",
+      "corticosteroid",
+      "glucocorticoid",
+      "steroid",
+      "tcs",
+      "clobetasol",
+      "betamethasone",
+      "hydrocortisone",
+      "mometasone",
+      "triamcinolone",
+      "fluocinonide",
+      "desonide"
+     ]
+    },
+    {
+     "field": "title",
+     "keywords": [
+      "potency",
+      "quantit",
+      "fingertip",
+      "prescrib",
+      "inadequate response",
+      "definition of response",
+      "escalation",
+      "stewardship",
+      "primary care",
+      "initial management",
+      "treatment pattern"
+     ]
+    }
+   ],
+   "none_of": [],
+   "title_regex": null,
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "seb_derm",
+   "kind": "intent",
+   "intent": "Seborrheic dermatitis: disease and treatment paradigm",
+   "weight": 75,
+   "why": "Roflumilast foam is approved for seborrheic dermatitis. Almost every SD article was sent: burden and psychiatric comorbidity, diagnostic criteria, mechanisms, antifungal stewardship, consensus, pipeline.",
+   "keyword_groups": [
+    {
+     "field": "title",
+     "keywords": [
+      "seborrh",
+      "antifungal stewardship",
+      "antifungal therapy",
+      "antifungal resistance",
+      "malassezia"
+     ]
+    }
+   ],
+   "none_of": [
+    "keratos"
+   ],
+   "title_regex": null,
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "pde4_class",
+   "kind": "intent",
+   "intent": "PDE4 inhibitor class: mechanism and pipeline",
+   "weight": 70,
+   "why": "PDE4 inhibition in skin (mechanism beyond inflammation, orismilast chemistry, oral roflumilast in AD, the PDE4 landscape, apremilast combinations). It is roflumilast's class.",
+   "keyword_groups": [
+    {
+     "field": "title",
+     "keywords": [
+      "pde4",
+      "pde 4",
+      "phosphodiesterase",
+      "orismilast",
+      "difamilast",
+      "apremilast"
+     ]
+    }
+   ],
+   "none_of": [
+    "copd",
+    "asthma",
+    "pulmonary",
+    "mice",
+    "mouse",
+    "murine",
+    "rats",
+    "in vitro",
+    "in silico",
+    "docking",
+    "nano",
+    "ethosom",
+    "niosom",
+    "liposom",
+    "hydrogel",
+    "microneedle",
+    "emulgel"
+   ],
+   "title_regex": null,
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "combination",
+   "kind": "intent",
+   "intent": "Topicals combined with systemic, biologic or device therapy",
+   "weight": 70,
+   "why": "Adding a topical non-steroidal to a biologic, oral therapy or laser/phototherapy for residual disease (tapinarof added to biologics, roflumilast on dupilumab, tapinarof with apremilast or NB-UVB).",
+   "keyword_groups": [
+    {
+     "field": "title",
+     "keywords": [
+      "dupilumab",
+      "biologic",
+      "apremilast",
+      "tralokinumab",
+      "nemolizumab",
+      "lebrikizumab",
+      "ustekinumab",
+      "systemic",
+      "laser",
+      "phototherapy",
+      "narrowband",
+      "ultraviolet"
+     ]
+    },
+    {
+     "field": "title",
+     "keywords": [
+      "add",
+      "adjunct",
+      "combination",
+      "combined",
+      "residual",
+      "concomitant",
+      "ongoing",
+      "during",
+      "with"
+     ]
+    },
+    {
+     "field": "title_abstract",
+     "keywords": [
+      "roflumilast",
+      "zoryve",
+      "arq 151",
+      "arq 154",
+      "arq 255",
+      "tapinarof",
+      "benvitimod",
+      "vtama",
+      "ruxolitinib cream",
+      "topical ruxolitinib",
+      "ruxolitinib 1 5",
+      "opzelura",
+      "delgocitinib",
+      "anzupgo",
+      "crisaborole",
+      "difamilast",
+      "orismilast",
+      "ruxolitinib",
+      "roxulitinib"
+     ]
+    }
+   ],
+   "none_of": [],
+   "title_regex": null,
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "landscape",
+   "kind": "intent",
+   "intent": "Topical non-steroidal treatment landscape reviews",
+   "weight": 65,
+   "why": "Reviews of the topical options. The reviewer reads them for how roflumilast is described next to competitors and quotes the lines that help or hurt it.",
+   "keyword_groups": [
+    {
+     "field": "title",
+     "keywords": [
+      "nonsteroidal",
+      "non steroidal",
+      "steroid sparing",
+      "steroid free",
+      "topical therap",
+      "topical treatment",
+      "topical agent",
+      "topicals",
+      "topical option",
+      "topical targeted",
+      "targeted topical",
+      "emerging topical",
+      "novel topical",
+      "topical prescription",
+      "end of the steroid era",
+      "new paradigm",
+      "therapeutic landscape",
+      "therapeutic update",
+      "current therapeutics",
+      "novel treatments",
+      "practical considerations",
+      "what is new"
+     ]
+    },
+    {
+     "field": "title_abstract",
+     "keywords": [
+      "atopic",
+      "eczema",
+      "psoria",
+      "seborrh",
+      "dermatitis",
+      "topical"
+     ]
+    }
+   ],
+   "none_of": [
+    "graft",
+    "canine",
+    "acne",
+    "rosacea"
+   ],
+   "title_regex": null,
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "competitor_evidence",
+   "kind": "intent",
+   "intent": "Competitor clinical and real-world evidence",
+   "weight": 70,
+   "why": "Trials, long-term extensions, pooled analyses and real-world studies of tapinarof, topical ruxolitinib and delgocitinib (TRuE-AD4, DELTA TEEN, delgocitinib in AD, tapinarof in Japanese children, ruxolitinib claims analyses).",
+   "keyword_groups": [
+    {
+     "field": "title",
+     "keywords": [
+      "tapinarof",
+      "benvitimod",
+      "vtama",
+      "ruxolitinib cream",
+      "topical ruxolitinib",
+      "ruxolitinib 1 5",
+      "opzelura",
+      "delgocitinib",
+      "anzupgo",
+      "crisaborole",
+      "difamilast",
+      "orismilast",
+      "ruxolitinib"
+     ]
+    },
+    {
+     "field": "title",
+     "keywords": [
+      "trial",
+      "phase",
+      "randomi",
+      "real world",
+      "real life",
+      "retrospective",
+      "cohort",
+      "claims",
+      "open label",
+      "long term",
+      "pooled",
+      "post hoc",
+      "meta analysis",
+      "systematic review",
+      "registry",
+      "observational",
+      "extension",
+      "maximal use",
+      "dose",
+      "adolescent",
+      "pediatric",
+      "paediatric",
+      "children",
+      "effectiveness",
+      "versus",
+      "monotherapy",
+      "as needed"
+     ]
+    }
+   ],
+   "none_of": [
+    "vitiligo",
+    "graft",
+    "gvhd",
+    "myelofibrosis",
+    "alopecia"
+   ],
+   "title_regex": null,
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "access_heor",
+   "kind": "intent",
+   "intent": "Market access, cost and utilization",
+   "weight": 65,
+   "why": "Claims, Medicare/Medicaid, payer and cost analyses of topicals and AD care (ruxolitinib Part D growth, insurance type and non-steroidal use, budget impact, pediatric pharmacy costs).",
+   "keyword_groups": [
+    {
+     "field": "title",
+     "keywords": [
+      "claims",
+      "medicare",
+      "medicaid",
+      "insurance",
+      "payer",
+      "managed care",
+      "prior authorization",
+      "step therapy",
+      "cost",
+      "budget impact",
+      "economic",
+      "utilization",
+      "utilisation",
+      "prescribing",
+      "treatment pattern",
+      "healthcare resource",
+      "formulary",
+      "pharmacy",
+      "market"
+     ]
+    },
+    {
+     "field": "title",
+     "keywords": [
+      "atopic",
+      "eczema",
+      "psoriasis",
+      "psoriatic lesion",
+      "plaque psoria",
+      "seborrh",
+      "hand dermatitis",
+      "roflumilast",
+      "zoryve",
+      "arq 151",
+      "arq 154",
+      "arq 255",
+      "tapinarof",
+      "benvitimod",
+      "vtama",
+      "ruxolitinib cream",
+      "topical ruxolitinib",
+      "ruxolitinib 1 5",
+      "opzelura",
+      "delgocitinib",
+      "anzupgo",
+      "crisaborole",
+      "difamilast",
+      "orismilast",
+      "ruxolitinib",
+      "roxulitinib",
+      "topical",
+      "nonsteroidal",
+      "dermatitis"
+     ]
+    }
+   ],
+   "none_of": [
+    "vitiligo",
+    "alopecia",
+    "graft"
+   ],
+   "title_regex": null,
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "formulation",
+   "kind": "intent",
+   "intent": "Formulation, vehicle and excipient allergens",
+   "weight": 65,
+   "why": "Vehicles, excipients and contact allergens in topicals (parabens in roflumilast cream, allergens in TCS formulations, tapinarof as a contact allergen, vehicle formulation of non-steroidal creams).",
+   "keyword_groups": [
+    {
+     "field": "title",
+     "keywords": [
+      "vehicle formulation",
+      "excipient",
+      "inactive ingredient",
+      "paraben",
+      "allergen",
+      "contact allergy",
+      "allergic contact",
+      "patch test",
+      "lipid membrane"
+     ]
+    },
+    {
+     "field": "title_abstract",
+     "keywords": [
+      "topical",
+      "cream",
+      "ointment",
+      "foam",
+      "roflumilast",
+      "zoryve",
+      "arq 151",
+      "arq 154",
+      "arq 255",
+      "tapinarof",
+      "benvitimod",
+      "vtama",
+      "ruxolitinib cream",
+      "topical ruxolitinib",
+      "ruxolitinib 1 5",
+      "opzelura",
+      "delgocitinib",
+      "anzupgo",
+      "crisaborole",
+      "difamilast",
+      "orismilast",
+      "ruxolitinib",
+      "roxulitinib"
+     ]
+    }
+   ],
+   "none_of": [],
+   "title_regex": null,
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "jak_class_safety",
+   "kind": "intent",
+   "intent": "JAK inhibitor class safety",
+   "weight": 55,
+   "why": "Infection, cardiovascular and malignancy risk across JAK inhibitors, including how topical exposure is separated from oral (boxed-warning context for topical ruxolitinib and delgocitinib).",
+   "keyword_groups": [
+    {
+     "field": "title",
+     "keywords": [
+      "jak",
+      "janus kinase"
+     ]
+    },
+    {
+     "field": "title",
+     "keywords": [
+      "safety",
+      "infection",
+      "malignan",
+      "cardiovascular",
+      "thrombo",
+      "risk",
+      "adverse"
+     ]
+    }
+   ],
+   "none_of": [
+    "graft",
+    "myelofibrosis",
+    "alopecia",
+    "vitiligo",
+    "rheumatoid",
+    "ulcerative",
+    "crohn"
+   ],
+   "title_regex": null,
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "special_sites",
+   "kind": "intent",
+   "intent": "High-impact or special body sites",
+   "weight": 55,
+   "why": "Genital, intertriginous, scalp, face, nail and palmoplantar disease and severity definitions that count these sites. Roflumilast is labelled for intertriginous use, so special-site data matters.",
+   "keyword_groups": [
+    {
+     "field": "title",
+     "keywords": [
+      "genital",
+      "intertrigin",
+      "inverse psoria",
+      "scalp",
+      "nail",
+      "facial",
+      "face",
+      "eyelid",
+      "high impact",
+      "severity",
+      "special site",
+      "palmoplantar",
+      "plantar",
+      "perioral",
+      "periorificial"
+     ]
+    },
+    {
+     "field": "title",
+     "keywords": [
+      "psoria",
+      "atopic",
+      "eczema",
+      "dermatitis"
+     ]
+    },
+    {
+     "field": "title_abstract",
+     "keywords": [
+      "topical",
+      "nonsteroidal",
+      "non steroidal",
+      "cream",
+      "ointment",
+      "foam",
+      "roflumilast",
+      "zoryve",
+      "arq 151",
+      "arq 154",
+      "arq 255",
+      "tapinarof",
+      "benvitimod",
+      "vtama",
+      "ruxolitinib cream",
+      "topical ruxolitinib",
+      "ruxolitinib 1 5",
+      "opzelura",
+      "delgocitinib",
+      "anzupgo",
+      "crisaborole",
+      "difamilast",
+      "orismilast",
+      "ruxolitinib",
+      "roxulitinib",
+      "topical corticosteroid",
+      "topical steroid",
+      "topical glucocorticoid",
+      "corticosteroid",
+      "glucocorticoid",
+      "steroid"
+     ]
+    }
+   ],
+   "none_of": [
+    "vitiligo",
+    "alopecia",
+    "lebrikizumab",
+    "dupilumab",
+    "homoeopath",
+    "homeopath"
+   ],
+   "title_regex": null,
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "pediatric",
+   "kind": "intent",
+   "intent": "Pediatric and infant topical treatment",
+   "weight": 55,
+   "why": "Children and infants with AD or psoriasis treated topically (guidelines, treatment patterns, emerging topicals). Roflumilast is approved down to age 2 with trials from 3 months.",
+   "keyword_groups": [
+    {
+     "field": "title",
+     "keywords": [
+      "pediatric",
+      "paediatric",
+      "children",
+      "child",
+      "childhood",
+      "infant",
+      "toddler",
+      "adolescent"
+     ]
+    },
+    {
+     "field": "title_abstract",
+     "keywords": [
+      "atopic",
+      "eczema",
+      "psoria",
+      "seborrh"
+     ]
+    },
+    {
+     "field": "title_abstract",
+     "keywords": [
+      "topical",
+      "nonsteroidal",
+      "non steroidal",
+      "cream",
+      "ointment",
+      "foam",
+      "roflumilast",
+      "zoryve",
+      "arq 151",
+      "arq 154",
+      "arq 255",
+      "tapinarof",
+      "benvitimod",
+      "vtama",
+      "ruxolitinib cream",
+      "topical ruxolitinib",
+      "ruxolitinib 1 5",
+      "opzelura",
+      "delgocitinib",
+      "anzupgo",
+      "crisaborole",
+      "difamilast",
+      "orismilast",
+      "ruxolitinib",
+      "roxulitinib",
+      "topical corticosteroid",
+      "topical steroid",
+      "topical glucocorticoid",
+      "corticosteroid",
+      "glucocorticoid",
+      "steroid"
+     ]
+    }
+   ],
+   "none_of": [
+    "alopecia",
+    "vitiligo",
+    "dupilumab",
+    "lebrikizumab",
+    "tralokinumab",
+    "upadacitinib",
+    "food"
+   ],
+   "title_regex": null,
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "patient_burden",
+   "kind": "intent",
+   "intent": "Patient burden, preferences and adherence",
+   "weight": 50,
+   "why": "Quality of life, psychiatric comorbidity, itch and sleep burden, adherence, patient preferences and uncontrolled disease. Supports unmet-need and patient-centred messaging.",
+   "keyword_groups": [
+    {
+     "field": "title",
+     "keywords": [
+      "quality of life",
+      "burden",
+      "adherence",
+      "preference",
+      "patient reported",
+      "patient experience",
+      "patient perspective",
+      "qualitative",
+      "psychiatric",
+      "depression",
+      "anxiety",
+      "caregiver",
+      "discrete choice",
+      "stigma",
+      "uncontrolled",
+      "inadequate disease control",
+      "unmet need",
+      "treatment goal",
+      "thresholds",
+      "comorbidit",
+      "outcome measure"
+     ]
+    },
+    {
+     "field": "title",
+     "keywords": [
+      "atopic",
+      "eczema",
+      "psoria",
+      "seborrh",
+      "hand eczema"
+     ]
+    }
+   ],
+   "none_of": [
+    "dupilumab",
+    "lebrikizumab",
+    "nemolizumab",
+    "tralokinumab",
+    "biologic"
+   ],
+   "title_regex": null,
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "off_label_case",
+   "kind": "intent",
+   "intent": "Off-label use of topical non-steroidals (case reports)",
+   "weight": 50,
+   "why": "Case reports and series of tapinarof, topical ruxolitinib or delgocitinib in other diseases (lichen planus, Hailey-Hailey, rosacea, lichen sclerosus, Darier). Usually listed as FYI; shows where competitors are expanding.",
+   "keyword_groups": [
+    {
+     "field": "title",
+     "keywords": [
+      "tapinarof",
+      "benvitimod",
+      "vtama",
+      "ruxolitinib cream",
+      "topical ruxolitinib",
+      "ruxolitinib 1 5",
+      "opzelura",
+      "delgocitinib",
+      "anzupgo",
+      "crisaborole",
+      "difamilast",
+      "orismilast",
+      "ruxolitinib",
+      "roxulitinib"
+     ]
+    },
+    {
+     "field": "title",
+     "keywords": [
+      "case",
+      "for",
+      "treated",
+      "treatment",
+      "successful",
+      "improvement",
+      "clearance",
+      "response",
+      "refractory",
+      "recalcitrant",
+      "managed",
+      "in a patient"
+     ]
+    }
+   ],
+   "none_of": [
+    "graft",
+    "gvhd",
+    "myelofibrosis",
+    "transplant",
+    "vitiligo"
+   ],
+   "title_regex": null,
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "hand_eczema",
+   "kind": "intent",
+   "intent": "Chronic hand eczema",
+   "weight": 50,
+   "why": "Chronic hand eczema treatment and burden. Delgocitinib is approved here, so it is a competitive space.",
+   "keyword_groups": [
+    {
+     "field": "title",
+     "keywords": [
+      "hand eczema",
+      "hand dermatitis",
+      "hand foot"
+     ]
+    }
+   ],
+   "none_of": [
+    "dupilumab",
+    "upadacitinib",
+    "abrocitinib",
+    "alitretinoin"
+   ],
+   "title_regex": null,
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "pregnancy",
+   "kind": "intent",
+   "intent": "Pregnancy and lactation",
+   "weight": 50,
+   "why": "Use of topicals in pregnancy and the postpartum period (lack of human data for roflumilast and tapinarof).",
+   "keyword_groups": [
+    {
+     "field": "title",
+     "keywords": [
+      "pregnan",
+      "postpartum",
+      "lactat",
+      "breastfeed"
+     ]
+    },
+    {
+     "field": "title_abstract",
+     "keywords": [
+      "topical",
+      "nonsteroidal",
+      "non steroidal",
+      "cream",
+      "ointment",
+      "foam",
+      "roflumilast",
+      "zoryve",
+      "arq 151",
+      "arq 154",
+      "arq 255",
+      "tapinarof",
+      "benvitimod",
+      "vtama",
+      "ruxolitinib cream",
+      "topical ruxolitinib",
+      "ruxolitinib 1 5",
+      "opzelura",
+      "delgocitinib",
+      "anzupgo",
+      "crisaborole",
+      "difamilast",
+      "orismilast",
+      "ruxolitinib",
+      "roxulitinib",
+      "topical corticosteroid",
+      "topical steroid",
+      "topical glucocorticoid",
+      "corticosteroid",
+      "glucocorticoid",
+      "steroid"
+     ]
+    }
+   ],
+   "none_of": [],
+   "title_regex": null,
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "pipeline",
+   "kind": "intent",
+   "intent": "Pipeline and investigational agents",
+   "weight": 50,
+   "why": "Investigational agents and early-phase programs (rosacea and HS pipelines that include roflumilast, TAP-1502, new topical classes).",
+   "keyword_groups": [
+    {
+     "field": "title",
+     "keywords": [
+      "investigational",
+      "pipeline",
+      "emerging drugs",
+      "emerging synthetic",
+      "early investigational",
+      "first in class",
+      "new drug",
+      "recent advances"
+     ]
+    },
+    {
+     "field": "title_abstract",
+     "keywords": [
+      "atopic",
+      "eczema",
+      "psoria",
+      "seborrh",
+      "dermatitis",
+      "rosacea",
+      "hidradenitis",
+      "topical"
+     ]
+    }
+   ],
+   "none_of": [],
+   "title_regex": null,
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "congress_abstract",
+   "kind": "deprioritise",
+   "intent": "Congress abstract (numbered title)",
+   "weight": -40,
+   "why": "Meeting abstracts were never sent; posters reach the team through congress coverage.",
+   "keyword_groups": null,
+   "none_of": null,
+   "title_regex": "^\\s*([A-Z]{0,3}\\d{2,6}(-\\d+)?|[A-Z]{1,3}\\d{2,4}-\\d{2})\\s*\\|?\\s+\\S",
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "arcutis_trial_pub",
+   "kind": "deprioritise",
+   "intent": "Arcutis pivotal-trial publication",
+   "weight": -40,
+   "why": "INTEGUMENT, DERMIS, ARRECTOR and STRATUM papers and their plain-language summaries are Arcutis's own publications, known to the team before they appear; none were sent.",
+   "keyword_groups": null,
+   "none_of": null,
+   "title_regex": "\\b(integument|dermis-?[12]|arrector|stratum clinical|plain language summary)\\b|^(?!.*game changer).*(roflumilast.*\\b(subgroup|post.hoc|pooled|proactive|bridging|integrated analys)|\\b(subgroup|post.hoc|pooled)\\b.*roflumilast)",
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "arcutis_funded",
+   "kind": "deprioritise",
+   "intent": "Arcutis-funded work",
+   "weight": -35,
+   "why": "Posters, encore abstracts and analyses funded by Arcutis or written by its employees reach the team internally; none was sent, while independent roflumilast reports always were. Arcutis-supported expert consensus papers are the exception (the genital psoriasis Delphi was sent with congratulations).",
+   "keyword_groups": null,
+   "none_of": null,
+   "title_regex": null,
+   "text_regex": "(funded|supported|sponsored|financial support)\\W+(\\w+\\W+){0,6}?arcutis|(employee[s]?|employed)\\W+(\\w+\\W+){0,6}?arcutis|arcutis\\W+(\\w+\\W+){0,3}?(funded|sponsored|employee)",
+   "study_types": null,
+   "unless_regex": "\\b(consensus|delphi|guidelines?|position (statement|paper)|recommendations?)\\b"
+  },
+  {
+   "intent_id": "oral_jak_other",
+   "kind": "deprioritise",
+   "intent": "Oral/systemic JAK inhibitor or non-dermatology JAK use",
+   "weight": -40,
+   "why": "Oral JAK inhibitor studies (alopecia areata, vitiligo, lupus, dermatomyositis, GVHD, myelofibrosis) dominate the ruxolitinib and topical-JAK terms but were not sent unless a topical was the subject.",
+   "keyword_groups": null,
+   "none_of": null,
+   "title_regex": "\\b(oral|tofacitinib|baricitinib|upadacitinib|abrocitinib|ritlecitinib|deuruxolitinib|deucravacitinib|graft|gvhd|myelofibrosis|myeloproliferative|polycythemia|transplant\\w*|dermatomyositis|candle|down syndrome|hemophagocytic)\\b",
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": "\\b(cream|topical)\\b"
+  },
+  {
+   "intent_id": "vitiligo_alopecia",
+   "kind": "deprioritise",
+   "intent": "Vitiligo or alopecia areata (no Arcutis indication)",
+   "weight": -25,
+   "why": "Ruxolitinib-in-vitiligo and JAK-in-alopecia-areata papers were not sent; roflumilast in vitiligo was.",
+   "keyword_groups": null,
+   "none_of": null,
+   "title_regex": "\\b(vitiligo|alopecia areata|repigmentation)\\b",
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": "\\b(roflumilast|atopic|psoria\\w*|seborrh\\w*|eczema)\\b"
+  },
+  {
+   "intent_id": "preclinical",
+   "kind": "deprioritise",
+   "intent": "Preclinical, formulation-lab or veterinary study",
+   "weight": -30,
+   "why": "Animal, cell and drug-delivery studies were rarely sent (two exceptions, both PDE4/tapinarof chemistry).",
+   "keyword_groups": null,
+   "none_of": null,
+   "title_regex": "\\b(mice|mouse|murine|rats?|rabbits?|in vitro|in silico|cell lines?|nano\\w*|\\w*ethosom\\w*|\\w*niosom\\w*|liposom\\w*|hydrogel|microneedle|emulgel|docking|zebrafish|canine|dogs?|cats?|veterinar\\w*|keratinocytes?|co-culture|formulation and evaluation|formulation development|box.behnken|hplc|method development|derivatives|structural modification)\\b",
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "tcs_phobia_media",
+   "kind": "deprioritise",
+   "intent": "Steroid phobia or social-media discourse",
+   "weight": -25,
+   "why": "TCS phobia scores, social-media and terminology papers on TSW were not sent; clinical TSW reviews were.",
+   "keyword_groups": null,
+   "none_of": null,
+   "title_regex": "\\b(phobia|tiktok|youtube|social media|social-media|influencer|online content|sick role|narrative analysis|terminology|misinformation|discourse|large language model|chatgpt)\\b",
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "non_english",
+   "kind": "deprioritise",
+   "intent": "Not in English",
+   "weight": -30,
+   "why": "Non-English articles were not sent.",
+   "keyword_groups": null,
+   "none_of": null,
+   "title_regex": "^\\s*\\[|[áéíóúñçãõâêôàèùäöüß¿¡]|\\b(chez|atteints|del|las|los|bei|und|mit|der|die|em|para)\\b",
+   "text_regex": null,
+   "study_types": null,
+   "unless_regex": null
+  },
+  {
+   "intent_id": "book_or_preprint",
+   "kind": "deprioritise",
+   "intent": "Book chapter, drug monograph or preprint",
+   "weight": -40,
+   "why": "StatPearls/CADTH chapters, drug-information Q&A pages and preprints were not sent.",
+   "keyword_groups": null,
+   "none_of": null,
+   "title_regex": "^\\s*(what (is|are) the|which|how (should|do)|in a \\d+.year.old)\\b|supplementary data|\\((zoryve|vtama|opzelura|anzupgo|nemluvio|ebglyss|eucrisa)\\)",
+   "text_regex": null,
+   "study_types": [
+    "Book chapter",
+    "Preprint"
+   ],
+   "unless_regex": null
+  }
+ ],
+ "terms": [
+  {
+   "term": "Tapinarof",
+   "product_category": "Competitor",
+   "pubmed_query": "tapinarof[tiab]",
+   "openalex_query": "",
+   "scholar_query": ""
+  },
+  {
+   "term": "Orismilast",
+   "product_category": "Competitor",
+   "pubmed_query": "orismilast[tiab]",
+   "openalex_query": "",
+   "scholar_query": ""
+  },
+  {
+   "term": "Roflumilast cream",
+   "product_category": "Roflumilast",
+   "pubmed_query": "roflumilast[tiab] AND cream[tiab]",
+   "openalex_query": "",
+   "scholar_query": ""
+  },
+  {
+   "term": "Roflumilast dermatitis",
+   "product_category": "Roflumilast",
+   "pubmed_query": "roflumilast[tiab] AND dermatitis[tiab]",
+   "openalex_query": "",
+   "scholar_query": ""
+  },
+  {
+   "term": "Roflumilast foam",
+   "product_category": "Roflumilast",
+   "pubmed_query": "roflumilast[tiab] AND foam[tiab]",
+   "openalex_query": "",
+   "scholar_query": ""
+  },
+  {
+   "term": "Roflumilast psoriasis",
+   "product_category": "Roflumilast",
+   "pubmed_query": "roflumilast[tiab] AND psoriasis[tiab]",
+   "openalex_query": "",
+   "scholar_query": ""
+  },
+  {
+   "term": "Roflumilast seborrheic dermatitis",
+   "product_category": "Roflumilast",
+   "pubmed_query": "roflumilast[tiab] AND seborrheic[tiab]",
+   "openalex_query": "",
+   "scholar_query": ""
+  },
+  {
+   "term": "Delgocitinib",
+   "product_category": "Competitor",
+   "pubmed_query": "delgocitinib[tiab]",
+   "openalex_query": "",
+   "scholar_query": ""
+  },
+  {
+   "term": "Ruxolitinib",
+   "product_category": "Competitor",
+   "pubmed_query": "ruxolitinib[tiab] AND (dermatitis[tiab] OR vitiligo[tiab] OR psoriasis[tiab] OR eczema[tiab] OR skin[tiab])",
+   "openalex_query": "",
+   "scholar_query": ""
+  },
+  {
+   "term": "Ruxolitinib topical",
+   "product_category": "Competitor",
+   "pubmed_query": "ruxolitinib[tiab] AND (cream[tiab] OR topical[tiab])",
+   "openalex_query": "",
+   "scholar_query": ""
+  },
+  {
+   "term": "Topical corticosteroids",
+   "product_category": "Class",
+   "pubmed_query": "topical corticosteroid*[tiab] AND (dermatitis[tiab] OR psoriasis[tiab] OR eczema[tiab])",
+   "openalex_query": "",
+   "scholar_query": ""
+  },
+  {
+   "term": "Topical roflumilast",
+   "product_category": "Roflumilast",
+   "pubmed_query": "topical roflumilast[tiab]",
+   "openalex_query": "",
+   "scholar_query": ""
+  },
+  {
+   "term": "Topical Janus kinase inhibitor",
+   "product_category": "Class",
+   "pubmed_query": "topical[tiab] AND (JAK inhibitor*[tiab] OR Janus kinase inhibitor*[tiab])",
+   "openalex_query": "",
+   "scholar_query": ""
+  },
+  {
+   "term": "Topical steroid withdrawal",
+   "product_category": "Class",
+   "pubmed_query": "topical steroid withdrawal[tiab]",
+   "openalex_query": "",
+   "scholar_query": ""
+  }
+ ]
+}

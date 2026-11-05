@@ -1,8 +1,8 @@
 -- The L3 reasons (the intent list) and the articles from the INFORM "Articles of Interest" emails they were learned from,
 -- plus a view of the surveillance articles ranked by L3 score. Prefix medical_prod.apps.literature_surveillance, like
 -- tables.sql. build_tables.py creates these and fills the two tables; running it again replaces their rows.
--- The daily job (surveillance.py) reads both tables when they exist: it scores with the active rows of _intents instead
--- of its built-in list, and puts every article in _ci_articles on the accepted feed.
+-- The daily job (surveillance.py) reads both tables: it scores with the active rows of _intents (the only copy of the
+-- L3 reasons), and puts every article in _ci_articles on the accepted feed.
 
 CREATE TABLE IF NOT EXISTS medical_prod.apps.literature_surveillance_intents (
   intent_id        STRING NOT NULL COMMENT 'Short id, e.g. own_product',

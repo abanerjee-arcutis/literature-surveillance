@@ -2,7 +2,8 @@
 that the daily job wrote, the decisions and settings saved here), saves reviewers' Accept / Ignore / Restore clicks
 (with the reasons ticked for an accept or ignore) to the decisions table, and saves the Settings dialog (sources,
 search terms and priority keywords) to the settings table, so the next run uses them. The tables are
-<LITSURV_TABLES>_articles, _runs, _decisions and _settings (tables.sql). Settings → L3 lists the L3 reasons and
+<LITSURV_TABLES>_articles, _runs, _decisions, _settings and _rules (tables.sql); the lists the page offers (reviewer
+reasons, diseases, intents, priority bands) are read from _rules on every request, not kept in the code. Settings → L3 lists the L3 reasons and
 push-down rules the last run scored with, from its row in _runs.
 
 The app runs its SQL on a SQL warehouse as its own service principal, so viewers only need "Can use" on the app.
@@ -29,6 +30,7 @@ TABLES = os.environ.get("LITSURV_TABLES", "medical_prod.apps.literature_surveill
 WAREHOUSE_ID = os.environ.get("DATABRICKS_WAREHOUSE_ID")   # app.yaml takes it from the app's sql-warehouse resource
 ARTICLES, RUNS = f"{TABLES}_articles", f"{TABLES}_runs"   # written by the daily job
 DECISIONS, SETTINGS = f"{TABLES}_decisions", f"{TABLES}_settings"   # written here; surveillance.py reads both
+RULES = f"{TABLES}_rules"                              # read here for the page's lists; maintained in SQL, read by the job
 DECISION_VALUES = ("accepted", "ignored", "restored", "removed", "")   # 'removed' is the older name for 'ignored'
 TERM_FIELDS = ["term", "product_category", "pubmed_query", "openalex_query", "scholar_query"]
 TERMS_TYPE = "ARRAY<STRUCT<" + ", ".join(f"{k}: STRING" for k in TERM_FIELDS) + ">>"
@@ -37,7 +39,7 @@ SOURCES = ("pubmed", "openalex", "scholar")
 
 app = Flask(__name__)
 w = WorkspaceClient()
-pool = ThreadPoolExecutor(4)                           # the page's four queries run side by side
+pool = ThreadPoolExecutor(5)                           # the page's five queries run side by side
 with open(TEMPLATE, encoding="utf-8") as f:
     template = f.read()
 
@@ -95,6 +97,23 @@ def read_settings() -> dict | None:
     """The newest saved settings, in the shape the page and surveillance.py use, or None if never saved."""
     rows = sql(f"SELECT to_json(struct(*)) FROM {SETTINGS} ORDER BY updated_at DESC LIMIT 1")
     return json.loads(rows[0][0]) if rows else None
+
+
+def read_config() -> dict:
+    """The lists the page offers, from the active rows of the rules table: priority bands (highest score first), the
+    points an L3 keyword is worth, the diseases (with the default one, which an untagged article gets) and intents the
+    filters list, and the reasons offered when accepting or ignoring. Empty lists when the table has no such rows."""
+    rows = sql(f"""SELECT kind, name, weight, pattern FROM {RULES}
+                   WHERE active AND kind IN ('disease', 'intent_label', 'reason_accepted', 'reason_ignored', 'l3_band', 'l3_param', 'default')
+                   ORDER BY kind, rank""")
+    names = lambda kind: [r[1] for r in rows if r[0] == kind]   # noqa: E731
+    default_disease = [r[3] for r in rows if r[0] == "default" and r[1] == "disease" and r[3]]
+    return dict(
+        bands=sorted(([int(r[2]), r[1]] for r in rows if r[0] == "l3_band"), reverse=True),
+        own_keyword_points=next((int(r[2]) for r in rows if r[0] == "l3_param" and r[1] == "own_keyword_points"), None),
+        diseases=names("disease") + default_disease,
+        intents=names("intent_label"),
+        reasons=dict(accepted=names("reason_accepted"), ignored=names("reason_ignored")))
 
 
 def clean_reasons(reasons) -> list[str]:
@@ -190,13 +209,14 @@ def failed(e):
 
 @app.get("/")
 def page():
-    run, articles, decisions, saved = (f.result() for f in [pool.submit(read_last_run), pool.submit(read_page_articles),
-                                                            pool.submit(read_decisions), pool.submit(read_settings)])
+    run, articles, decisions, saved, config = (f.result() for f in [pool.submit(read_last_run), pool.submit(read_page_articles),
+                                                                    pool.submit(read_decisions), pool.submit(read_settings),
+                                                                    pool.submit(read_config)])
     if run is None:
         return message_page("No articles yet", f"The daily job has not run since {RUNS} was created. Run it once "
                             "(Jobs & Pipelines → Literature surveillance (daily) → Run now) and reload.", status=503)
     hook = {"DECISIONS_API": "api/decisions", "DECISIONS": {}, "REASONS": {}, "DECIDED": {}, "SETTINGS_API": "api/settings",
-            "ME": viewer()}
+            "ME": viewer(), "CONFIG": config}
     for key, aliases, _ in articles:                  # a decision stays with an article whose id changed, as in decision_for()
         decision, reasons, by, at = next((decisions[k] for k in (key, *aliases) if k in decisions), (None, [], "", ""))
         if decision:

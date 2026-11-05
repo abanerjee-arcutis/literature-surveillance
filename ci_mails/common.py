@@ -1,5 +1,6 @@
 """Shared by the ci_mails scripts: paths, the surveillance module with patient HTTP clients, and loading the emailed
-articles together with the L1 pool they were chosen from."""
+articles together with the L1 pool they were chosen from. The rules, L3 reasons, search terms and the hand corrections
+come from the tables (config()), not from files."""
 import json
 import os
 import re
@@ -16,7 +17,30 @@ sys.path.insert(0, ROOT)
 import surveillance as sv  # noqa: E402
 
 VERBOSE = "--verbose" in sys.argv
-TERMS = sv.clean_terms(sv.read_csv(os.path.join(ROOT, "terms.csv")))
+PREFIX = "medical_prod.apps.literature_surveillance"
+_CONFIG: dict = {}
+
+
+def config() -> dict:
+    """Reads the _rules, _intents and _settings tables once (as the signed-in CLI user): sets sv.RULES, as the daily job
+    does, and returns {terms, fix: {citation start: corrections}, window: (first, last date of the backtest)}."""
+    if not _CONFIG:
+        from dbsql import sql
+        num = lambda v: int(v) if v not in (None, "") else None   # noqa: E731
+        rules = [dict(r, rank=num(r["rank"]), weight=num(r["weight"]), active=True,
+                      match_values=json.loads(r["match_values"]) if r["match_values"] else None)
+                 for r in sql(f"""SELECT kind, name, rank, pattern, unless_pattern, to_json(match_values) AS match_values, applies_to,
+                                         weight, note FROM {PREFIX}_rules WHERE active ORDER BY kind, rank""")]
+        l3 = [dict(r, weight=num(r["weight"]), **{k: json.loads(r[k]) if r[k] else None for k in ("keyword_groups", "none_of", "study_types")})
+              for r in sql(f"""SELECT intent_id, kind, intent, weight, why, to_json(keyword_groups) AS keyword_groups,
+                                      to_json(none_of) AS none_of, title_regex, text_regex, to_json(study_types) AS study_types,
+                                      unless_regex FROM {PREFIX}_intents WHERE active ORDER BY rank""")]
+        sv.RULES.update(sv.load_rules(rules, l3))
+        terms = json.loads(sql(f"SELECT to_json(terms) AS t FROM {PREFIX}_settings ORDER BY updated_at DESC LIMIT 1")[0]["t"])
+        window = next(r["match_values"] for r in rules if r["kind"] == "ci_window")
+        _CONFIG.update(terms=sv.clean_terms(terms), window=tuple(window), rules=rules,
+                       fix={r["name"]: json.loads(r["pattern"]) for r in rules if r["kind"] == "ci_fix"})
+    return _CONFIG
 
 
 def retrying(get):
@@ -52,7 +76,7 @@ def record_of(a):
 
 def l1_terms_matching(title, abstract):
     text = f"{title} {abstract or ''}"
-    return [t["term"] for t in TERMS if sv.query_matches(t["openalex_query"] or sv.plain_query(t["pubmed_query"]), text)]
+    return [t["term"] for t in config()["terms"] if sv.query_matches(t["openalex_query"] or sv.plain_query(t["pubmed_query"]), text)]
 
 
 def best_title(tk, candidates, threshold):
@@ -71,6 +95,7 @@ def best_title(tk, candidates, threshold):
 
 def load():
     """(emailed articles, L1 pool {key: record}, {pool key: emailed article} for the pool articles that were emailed)."""
+    config()
     emails = json.load(open(os.path.join(WORK, "email_resolved.json"), encoding="utf-8"))
     pool = json.load(open(os.path.join(WORK, "l1_pool.json"), encoding="utf-8"))
     by_pmid = {r["pmid"]: k for k, r in pool.items() if r.get("pmid")}

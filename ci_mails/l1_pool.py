@@ -13,7 +13,7 @@ from datetime import date
 
 import requests
 
-from common import TERMS, WORK, clients, sv
+from common import WORK, clients, config, sv
 
 since = date.fromisoformat(sys.argv[1] if len(sys.argv) > 1 else "2025-12-15")
 until = date.fromisoformat(sys.argv[2] if len(sys.argv) > 2 else "2026-10-16")
@@ -35,6 +35,7 @@ def fetch(pmids):
     return out
 
 
+TERMS = config()["terms"]
 store, hits = {}, {}
 for t in TERMS:
     ids = pm.search(t["pubmed_query"], since, until, retmax=2000)

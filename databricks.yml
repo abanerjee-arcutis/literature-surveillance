@@ -10,7 +10,7 @@ variables:
   schema:
     default: apps                                     # Medical Affairs schema for app-backing files
   table_prefix:
-    description: Prefix of the tables in tables.sql (<table_prefix>_articles, _runs, _decisions, _settings)
+    description: Prefix of the tables in tables.sql (<table_prefix>_articles, _runs, _decisions, _settings, _rules)
     default: literature_surveillance
   warehouse_id:
     description: SQL warehouse the app reads and saves decisions and settings through
@@ -96,6 +96,11 @@ resources:
         - name: settings-read
           uc_securable:
             securable_full_name: ${var.catalog}.${var.schema}.${var.table_prefix}_settings
+            securable_type: TABLE
+            permission: SELECT
+        - name: rules-read                             # the lists the page offers: reasons, diseases, intents, priority bands
+          uc_securable:
+            securable_full_name: ${var.catalog}.${var.schema}.${var.table_prefix}_rules
             securable_type: TABLE
             permission: SELECT
         - name: settings-write

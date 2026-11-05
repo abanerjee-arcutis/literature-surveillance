@@ -5,7 +5,8 @@
 PubMed: the PMID in the email link, else a PMID found by DOI, else by title search. OpenAlex: by DOI, else PMID,
 else title search. A hit counts only when its title matches the email's title, so a wrong link in the email or a
 loose search result is not taken for the article. Articles still missing get a second, looser search (the first
-eight distinctive title words). Progress is cached in work/email_resolved.cache.jsonl, so a rerun resumes.
+eight distinctive title words). Progress is cached in work/email_resolved.cache.jsonl, so a rerun resumes. Hand corrections of a parsed citation
+(a wrong DOI, a missing title) are the ci_fix rows of the _rules table.
 """
 import json
 import os
@@ -14,22 +15,8 @@ from difflib import SequenceMatcher
 
 import requests
 
-from common import WORK, clients, sv
+from common import WORK, clients, config, sv
 
-FIX = {  # citation start → corrections to the parsed citation, checked against the email text by hand
-    "Drugs for atopic dermatitis": dict(title_guess="Drugs for atopic dermatitis"),
-    "Naldi L, et al.": dict(title_guess="Practical Recommendations For Seborrheic Dermatitis Management: An Expert Consensus"),
-    "Capper I, Hughes A.": dict(title_guess="A Review of Male Genital Psoriasis"),
-    "Foroohar T, et al.": dict(dois=[]),                   # took the next article's DOI
-    "Almansouri D, et al.": dict(dois=["10.1080/14656566.2026.2695100"]),
-    "Longowal M, Maruschak-Love SO.": dict(title_guess="Vitiligo Successfully Treated With Roflumilast Cream 0.3%"),
-    "Luijk S, et al.": dict(dois=[]),                      # the supplement's DOI
-    "Bowling HM, Oberlin DM": dict(title_guess="Rapid Improvement of Darier Disease with Topical Roflumilast: A Case Report"),
-    "Derman C.": dict(dois=[], not_literature="HCPLive news article"),
-    "Johnson V.": dict(dois=[], not_literature="HCPLive news article"),
-    "Waqas M, et al.": dict(dois=[]),                      # the email repeats the previous article's link
-    "Zhang K, et al. Eczema Herpeticum": dict(title_guess="Eczema herpeticum after topical ruxolitinib use: A report of 2 cases"),
-}
 STOPWORDS = set("the of and for with in a an to on from by at as its their".split())
 
 
@@ -47,6 +34,7 @@ def similar(a, b):
 
 def main():
     arts = json.load(open(os.path.join(WORK, "email_articles.json"), encoding="utf-8"))
+    fix = config()["fix"]                               # hand corrections: the ci_fix rows of the _rules table
     pm, oa = clients()
     fetch = pm.fetch
 
@@ -75,7 +63,7 @@ def main():
         if (a["pdf"], a["citation"]) in done:
             arts[n] = done[(a["pdf"], a["citation"])]
             continue
-        a.update(next((v for k, v in FIX.items() if a["citation"].startswith(k)), {}))
+        a.update(next((v for k, v in fix.items() if a["citation"].startswith(k)), {}))
         title = a["title_guess"]
         pubmed, openalex, how_pm, how_oa = None, None, None, None
         if not a.get("not_literature"):

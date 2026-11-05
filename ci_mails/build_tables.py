@@ -1,13 +1,14 @@
-"""Fill literature_surveillance_intents and _ci_articles and create the _ranked view (intents.sql).
+"""Fill literature_surveillance_ci_articles, refresh the backtest evidence in _intents and create the _ranked view (intents.sql).
 
     python build_tables.py [--dry-run]
 
-_intents gets the L3 reasons and push-down rules of surveillance.py, each with its backtest evidence; from the next
-run the daily job scores with the table instead of its built-in list, so a row can be changed or switched off
-there. _ci_articles gets every article sent in an Articles of Interest email, with the record the daily job adds to
-its store when its own search has not found the article: the job puts all of them on the accepted feed.
---dry-run writes the rows to work/tables_payload.json and nothing to Databricks. Without it the two tables' rows are
-replaced.
+_intents is the one place the L3 reasons and push-down rules live (change a row in SQL; the daily job scores with its
+active rows). This script only rewrites each row's backtest evidence columns (emailed articles it matches, precision
+in the L1 pool, examples), scoring with the rows as they are now. _ci_articles gets every article sent in an Articles
+of Interest email, with the record the daily job adds to its store when its own search has not found the article: the
+job puts all of them on the accepted feed.
+--dry-run writes the rows to work/tables_payload.json and nothing to Databricks. Without it _ci_articles is replaced
+and the evidence columns of _intents are updated.
 """
 import json
 import os
@@ -15,18 +16,12 @@ import re
 import sys
 from datetime import datetime, timezone
 
-from common import HERE, WORK, funding_text, load, study, sv
+from common import HERE, WORK, config, funding_text, load, study, sv
 from dbsql import sql
 
 PREFIX = "medical_prod.apps.literature_surveillance"
 VOLUME = "/Volumes/medical_prod/apps/ci_mails"
-WINDOW = ("2025-12-20", "2026-10-10")                  # as in backtest.py
 NOW = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
-INTENT_SCHEMA = ("ARRAY<STRUCT<intent_id: STRING, kind: STRING, intent: STRING, rank: INT, weight: INT, why: STRING, "
-                 "keyword_groups: ARRAY<STRUCT<field: STRING, keywords: ARRAY<STRING>>>, none_of: ARRAY<STRING>, "
-                 "title_regex: STRING, text_regex: STRING, study_types: ARRAY<STRING>, unless_regex: STRING, "
-                 "l3_keywords: ARRAY<STRING>, flagged_matched: INT, flagged_main: INT, pool_matched: INT, pool_precision: DOUBLE, "
-                 "examples: ARRAY<STRING>, active: BOOLEAN, updated_at: STRING, updated_by: STRING>>")
 CI_SCHEMA = ("ARRAY<STRUCT<email_item: INT, email_subject: STRING, email_date: STRING, email_pdf: STRING, tier: STRING, "
              "section: STRING, citation: STRING, title: STRING, journal: STRING, pub_date: STRING, pmid: STRING, doi: STRING, "
              "openalex_id: STRING, in_pubmed: BOOLEAN, in_openalex: BOOLEAN, found_in: STRING, links: ARRAY<STRING>, "
@@ -51,7 +46,7 @@ def batches(rows, limit=900_000):
 
 def score(r):
     """The daily job's L3 score of a record, without L3 keywords from Settings: (score, reasons matched, push-downs)."""
-    return sv.l3_score(sv.DEFAULT_L3_RULES, r["title"], r.get("abstract"), study(r), funding_text(r))
+    return sv.l3_score(sv.RULES["l3"], r["title"], r.get("abstract"), study(r), funding_text(r))
 
 
 def store_record(a) -> dict:
@@ -110,25 +105,26 @@ def ci_rows(emails, pool):
 
 
 def intent_rows(emails, pool, flagged):
-    """The L3 reasons and push-down rules, each with its backtest evidence: emailed articles it matches and its
-    precision among the articles the L1 terms found."""
+    """The backtest evidence of each active row of _intents: emailed articles it matches and its precision among the
+    articles the L1 terms found."""
+    window = config()["window"]
     lit = [a for a in emails if not a.get("not_literature")]
-    scored = [(k, r) for k, r in pool.items() if k in flagged or not r.get("pub_date") or WINDOW[0] <= r["pub_date"] <= WINDOW[1]]
+    scored = [(k, r) for k, r in pool.items() if k in flagged or not r.get("pub_date") or window[0] <= r["pub_date"] <= window[1]]
     def ids(r):
         _, hits, pushed = score(r)
         return {x["id"] for x in hits + pushed}
     lit_ids = [(a, ids(a["rec"])) for a in lit]
     pool_ids = [(k, ids(r)) for k, r in scored]
     rows = []
-    for n, rule in enumerate(sv.DEFAULT_L3_RULES, 1):
+    for rule in sv.RULES["l3"]:
         hit = [a for a, xs in lit_ids if rule["intent_id"] in xs]
         in_pool = [k for k, xs in pool_ids if rule["intent_id"] in xs]
         rows.append(dict(
-            rule, rank=n, l3_keywords=list(dict.fromkeys(k for g in rule["keyword_groups"] or [] for k in g["keywords"])) or None,
+            intent_id=rule["intent_id"],
+            l3_keywords=list(dict.fromkeys(k for g in rule["keyword_groups"] or [] for k in g["keywords"])) or None,
             flagged_matched=len(hit), flagged_main=sum(a["tier"] == "main" for a in hit), pool_matched=len(in_pool),
             pool_precision=round(sum(k in flagged for k in in_pool) / len(in_pool), 3) if in_pool else None,
-            examples=[a["rec"]["title"] for a in sorted(hit, key=lambda a: a["tier"] != "main")[:5]],
-            active=True, updated_at=NOW, updated_by="ci_mails/build_tables.py"))
+            examples=[a["rec"]["title"] for a in sorted(hit, key=lambda a: a["tier"] != "main")[:5]]))
     return rows
 
 
@@ -137,19 +133,20 @@ if __name__ == "__main__":
     intents, ci = intent_rows(emails, pool, flagged), ci_rows(emails, pool)
     json.dump(dict(intents=intents, ci=ci), open(os.path.join(WORK, "tables_payload.json"), "w", encoding="utf-8"),
               ensure_ascii=False, indent=1)
-    print(f"{len(ci)} emailed articles; {sum(r['kind'] == 'intent' for r in intents)} L3 reasons, "
-          f"{sum(r['kind'] != 'intent' for r in intents)} push-down rules")
+    print(f"{len(ci)} emailed articles; evidence for {len(intents)} L3 reasons and push-down rules")
     if "--dry-run" in sys.argv:
         sys.exit()
     ddl = re.sub(r"^--.*$", "", open(os.path.join(HERE, "intents.sql"), encoding="utf-8").read(), flags=re.M)
     for stmt in [s.strip() for s in re.split(r";[ \t]*$", ddl, flags=re.M) if s.strip()]:   # statements end a line with ';'
         sql(stmt)
-    for i, part in enumerate(batches(intents)):     # the first batch replaces the table's rows, the others add to them
-        sql(f"""INSERT {'INTO' if i else 'OVERWRITE'} {PREFIX}_intents
-                SELECT intent_id, kind, intent, rank, weight, why, keyword_groups, none_of, title_regex, text_regex, study_types,
-                       unless_regex, l3_keywords, flagged_matched, flagged_main, pool_matched, pool_precision, examples, active,
-                       CAST(updated_at AS TIMESTAMP), updated_by
-                FROM (SELECT inline(from_json(:rows, '{INTENT_SCHEMA}')))""", dict(rows=part))
+    for r in intents:                              # evidence only; the rules themselves are changed in SQL
+        sql(f"""UPDATE {PREFIX}_intents SET l3_keywords = from_json(:l3_keywords, 'ARRAY<STRING>'), flagged_matched = CAST(:fm AS INT),
+                       flagged_main = CAST(:fmain AS INT), pool_matched = CAST(:pm AS INT), pool_precision = CAST(:pp AS DOUBLE),
+                       examples = from_json(:examples, 'ARRAY<STRING>')
+                WHERE intent_id = :id""", dict(l3_keywords=json.dumps(r["l3_keywords"]), fm=str(r["flagged_matched"]),
+                                              fmain=str(r["flagged_main"]), pm=str(r["pool_matched"]),
+                                              pp=None if r["pool_precision"] is None else str(r["pool_precision"]),
+                                              examples=json.dumps(r["examples"]), id=r["intent_id"]))
     for i, part in enumerate(batches(ci)):
         sql(f"""INSERT {'INTO' if i else 'OVERWRITE'} {PREFIX}_ci_articles
                 SELECT email_item, email_subject, CAST(email_date AS TIMESTAMP), email_pdf, tier, section, citation, title, journal,

@@ -1,6 +1,8 @@
 -- Back-end tables for the literature surveillance job and app, named <prefix>_articles, _runs, _decisions, _settings
 -- (prefix medical_prod.apps.literature_surveillance). Run once in the SQL editor (DEPLOY.md, Step 3); running it again changes nothing.
 -- The daily job writes _articles and _runs; the app writes _decisions and _settings, and builds the page from all four.
+-- _rules holds the rules that tag and filter articles and the lists the page offers; the L3 reasons are in _intents (ci_mails/intents.sql).
+-- Nothing is built into the code: the job and the app read these tables.
 -- The column lists must match article_row(), decision_row(), settings_row() and run_row() in surveillance.py
 -- (tests/test_offline.py checks).
 
@@ -54,7 +56,7 @@ CREATE TABLE IF NOT EXISTS medical_prod.apps.literature_surveillance_settings (
   terms             ARRAY<STRUCT<term: STRING, product_category: STRING, pubmed_query: STRING, openalex_query: STRING, scholar_query: STRING>>
                                   COMMENT 'L1 search terms; empty openalex_query / scholar_query means derived from pubmed_query'
 )
-COMMENT 'Literature surveillance: the Settings dialog, one row per Save in the app. The newest row applies; when there is none, the job saves terms.csv as the first.';
+COMMENT 'Literature surveillance: the Settings dialog, one row per Save in the app. The newest row applies; the job stops when there is none.';
 
 CREATE TABLE IF NOT EXISTS medical_prod.apps.literature_surveillance_runs (
   run_at            TIMESTAMP NOT NULL,
@@ -70,10 +72,26 @@ CREATE TABLE IF NOT EXISTS medical_prod.apps.literature_surveillance_runs (
   articles          INT           COMMENT 'Articles in the store after the run',
   new_articles      INT           COMMENT 'Articles this run found for the first time',
   shown             INT           COMMENT 'Articles on the page',
-  l3_rules          STRING        COMMENT 'The L3 reasons and push-down rules the run scored with, as JSON (the _intents table, else surveillance.py)'
+  l3_rules          STRING        COMMENT 'The L3 reasons and push-down rules the run scored with, as JSON (the _intents table)'
 )
 COMMENT 'Literature surveillance: one row per run of the daily job. The app takes the page header and what the last run searched with from the newest row.';
 
 -- Tables created before the L3 score (November 2026) lack the runs table's last column. Add it once; until then the job
 -- skips it and the page's Settings → L3 tab cannot list the L3 reasons:
---   ALTER TABLE medical_prod.apps.literature_surveillance_runs ADD COLUMNS (l3_rules STRING COMMENT 'The L3 reasons and push-down rules the run scored with, as JSON (the _intents table, else surveillance.py)');
+--   ALTER TABLE medical_prod.apps.literature_surveillance_runs ADD COLUMNS (l3_rules STRING COMMENT 'The L3 reasons and push-down rules the run scored with, as JSON (the _intents table)');
+
+CREATE TABLE IF NOT EXISTS medical_prod.apps.literature_surveillance_rules (
+  kind          STRING NOT NULL COMMENT 'What the row is: exclusion, disease, study_type, study_type_text, openalex_type, intent_label, intent_rule, intent_abstract_rule, keyword, sponsor_company, reason_accepted, reason_ignored, l3_band, l3_param, default, not_article_type, not_article_title, ci_fix, ci_window (see DEPLOY.md, Step 3)',
+  name          STRING NOT NULL COMMENT 'The label the rule gives, or the rule name',
+  rank          INT             COMMENT 'Order within its kind; where the first match wins, the lowest rank is tried first',
+  pattern       STRING          COMMENT 'Python regex (case-insensitive except exclusion rows, which carry their own (?i) flag); for default and ci_fix rows a plain value',
+  unless_pattern STRING         COMMENT 'intent_rule: does not fire when the title matches this',
+  match_values  ARRAY<STRING>   COMMENT 'study_type: the PubMed publication type; openalex_type: the OpenAlex work type; intent_rule: the study types that fire it',
+  applies_to    STRING          COMMENT 'exclusion: title or title_abstract; intent_rule: study_type_or_title (default) or study_type_and_title',
+  weight        INT             COMMENT 'l3_band: lowest L3 score in the band; l3_param: the value',
+  note          STRING          COMMENT 'Why the rule exists; for intent_rule rows that need both a study type and a title match, the reason shown ({study_type} is filled in)',
+  active        BOOLEAN NOT NULL COMMENT 'false switches the row off without deleting it',
+  updated_at    TIMESTAMP,
+  updated_by    STRING
+)
+COMMENT 'Literature surveillance: the rules the daily job tags and filters articles with (exclusion rules, disease / study type / intent / keyword tagging, sponsors) and the lists the page offers (reviewer reasons, priority bands). Changes apply from the next run; the app reads the lists on every request.';

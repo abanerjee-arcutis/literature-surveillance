@@ -539,7 +539,7 @@
         <li><b>Start from the best reason.</b> The article's score begins with the points of its strongest reason.</li>
         <li><b>Add a little for each further reason.</b> +5 for every other reason that applies, up to +15, so an article that is relevant in several ways rises slightly.</li>
         <li><b>Push down what was never sent.</b> Points are taken off for kinds of article that the team did not send: congress abstracts (−40), Arcutis's own pivotal-trial papers (−40) and Arcutis-funded work (−35), oral or non-dermatology JAK inhibitor studies (−40), vitiligo and alopecia areata (−25), lab and veterinary studies (−30), and a few more. The score never goes below 0.</li>
-        <li><b>Your own keywords.</b> Keywords added in Settings → L3 count as one more reason, worth 60 points.</li>
+        <li><b>Your own keywords.</b> Keywords added in Settings → L3 count as one more reason, worth <span class="ownp"></span> points.</li>
       </ol>
       <p><b>Example:</b> a case series of topical roflumilast scores 100 for the own-product reason, plus 5 for a second reason (a safety signal) = <b>105, Must read</b>. A numbered congress abstract that matches a 65-point reason scores 65 − 40 = <b>25, Low</b>.</p>
       <h3>Priority bands</h3>
@@ -580,127 +580,23 @@
 // rule = exclusion rule that fired (or null); decision = the reviewer's choice: 'accepted', 'ignored' or 'restored'
 // (back to review despite a rule), or null. statusOf() turns the two into the feed an article is on.
 const DATA = [
-  { id: 1, decision: 'accepted', title: 'Allergic contact dermatitis to parabens associated with topical roflumilast cream: a case series of 2 patients', cite: 'Waldal GL et al. · Dermatitis · 2026', meta: 'Waldal GL et al. · Dermatitis 2026 · Case series', src: 'PubMed', via: 'PubMed', term: 'Roflumilast cream', dz: ['Atopic Dermatitis'], product: 'Roflumilast', type: 'Case series', intent: 'Safety', intent_why: 'title: "Allergic"',access: 'Full text', prio: 'Must read', score: 100, sponsor: 'Not stated', keywords: ['Roflumilast', 'Biologics'], reasons: ['Safety', 'Roflumilast', 'Safety signal', 'Useful for MSLs'],
-    link: 'https://pubmed.ncbi.nlm.nih.gov/42728891/',
-    summary: 'Two patients developed patch-test-confirmed allergic contact dermatitis to parabens while using topical roflumilast cream.',
-    points: ['Case 1: 63-year-old man with AD and psoriasiform hand eczema, unresponsive to TCS, topical tofacitinib, apremilast, lebrikizumab and dupilumab; roflumilast 0.3% for ~3 months. Positive patch tests to the cream and paraben mix; significant improvement after stopping.', 'Case 2: man with eyelid rash and AD with hand involvement; roflumilast 0.15% for ≥3 months. Positive patch tests to the cream and paraben mix; partial improvement after stopping.'],
-    why: 'Own-product tolerability signal. Useful for MSLs fielding questions on contact allergy with roflumilast; the allergen identified is the paraben excipient rather than the active molecule.' },
-  { id: 17, title: 'Rapid improvement of Darier disease with topical roflumilast: a case report', cite: 'Bowling HM, Oberlin DM · JAAD Case Reports · 2026', meta: 'Bowling HM, Oberlin DM · JAAD Case Rep 2026 · Case report', src: 'Google Scholar', via: 'JAAD Case Reports', term: 'Topical roflumilast', dz: ['Other'], product: 'Roflumilast', type: 'Case report', intent: 'Efficacy', intent_why: 'title: "improvement"',access: 'Full text', prio: 'Must read', score: 100, sponsor: 'None declared', keywords: ['Roflumilast'],
-    link: 'https://www.jaadcasereports.org/article/S2352-5126(26)00494-7/fulltext',
-    summary: 'A 15-year-old with genetically confirmed Darier disease (ATP2A2 variant), unresponsive to about a year of topical corticosteroids and tacrolimus, was switched to roflumilast 0.3% cream once daily.',
-    points: ['Marked reduction in keratotic papules after 1 week; near-complete resolution at 4 weeks.', 'BSA of the treated area fell from about 20% to 0%; pruritus NRS from 8 to 0.'],
-    why: 'Off-label single case, but a clean response in a hard-to-treat keratinisation disorder. Worth noting as emerging evidence of PDE-4 inhibition beyond labelled indications; label as off-label in any mail.' },
-  { id: 2, decision: 'accepted', title: 'Efficacy and safety of tapinarof cream once daily in Japanese pediatric patients with atopic dermatitis: a 60-week phase 3 trial', cite: 'Igarashi A et al. · Journal of Cutaneous Immunology and Allergy · 2026', meta: 'Igarashi A et al. · J Cutan Immunol Allergy 2026 · Phase 3', src: 'Google Scholar', via: 'Frontiers Partnerships', term: 'Tapinarof', dz: ['Atopic Dermatitis'], product: 'Competitor', type: 'Phase 3', intent: 'Efficacy', intent_why: 'study type: Phase 3',access: 'Full text', prio: 'Must read', score: 100, sponsor: 'Not stated', keywords: ['Tapinarof', 'Pediatric', 'Long-term'], reasons: ['Phase 3', 'Tapinarof', 'Pediatric', 'Long-term', 'New efficacy data', 'Competitive intelligence'],
-    link: 'https://www.frontierspartnerships.org/journals/journal-of-cutaneous-immunology-and-allergy/articles/10.3389/jcia.2026.17307/full',
-    summary: 'Randomized, double-blind, vehicle-controlled 8-week study of tapinarof 0.5% cream in Japanese children aged 2–11 with mild to severe AD (tapinarof n=107, vehicle n=55), followed by a 52-week open-label extension (n=151).',
-    points: ['Week 8: EASI-75 in 52.6% vs 12.6% (vehicle); IGA treatment success 26.2% vs 1.8%.', 'Responses kept rising through the extension: EASI-75 80.2% and IGA success 56.3% at week 60.', 'TEAEs 6.5% vs 3.6% in the blinded period; 14.3% in the extension. Folliculitis and acne were the main application-site events; contact dermatitis 6.5%; one case of hypopigmentation.', 'Around 20% used rescue topical corticosteroids at least once in the extension.'],
-    why: 'First long-term pediatric AD data for tapinarof at the lower 0.5% strength. Authors attribute the lower AE rate to the reduced strength versus 1%. Population is Japanese and aged 2–11, so results may not transfer directly.' },
-  { id: 5, title: 'Real-world clinical experience with ruxolitinib cream versus systemic therapies in patients with moderate atopic dermatitis in the United States', cite: 'Liu J et al. · Journal of Dermatological Treatment · 2026', meta: 'Liu J et al. · J Dermatolog Treat 2026 · Real-world · Incyte', src: 'PubMed', via: 'PubMed', term: 'Ruxolitinib topical', dz: ['Atopic Dermatitis'], product: 'Competitor', type: 'Real-world', intent: 'Real-world use', intent_why: 'title: "Real-world"',access: 'Full text', prio: 'Must read', score: 100, sponsor: 'Incyte', keywords: ['Ruxolitinib', 'Biologics', 'Head-to-head'],
-    link: 'https://www.tandfonline.com/doi/full/10.1080/09546634.2026.2698965',
-    summary: 'Analysis of the Adelphi Atopic Dermatitis Disease Specific Programme (Aug 2022–Mar 2023, n=619) comparing ruxolitinib cream with systemic therapies in adults with moderate to severe AD.',
-    points: ['Mean affected BSA fell 49% with ruxolitinib cream vs 35% with systemic immunosuppressants, 61% with oral JAK inhibitors and 55% with biologics.', 'Physician-reported severity improved in 48.4% on ruxolitinib cream vs 6.3% (immunosuppressants), 51.5% (oral JAKi) and 46.4% (biologics).', 'In patients with BSA ≤20%, reductions were broadly similar across cohorts.'],
-    why: 'Competitor real-world positioning of a topical against systemics. Sponsor-funded; note the comparison is observational, not randomised.' },
-  { id: 3, title: 'Inadequate disease control with current therapies among patients with a history of moderate-to-severe atopic dermatitis', cite: 'Lio P, Golant A, Chovatiya R et al. · Dermatitis · 2026', meta: 'Lio P et al. · Dermatitis 2026 · Real-world · Eli Lilly', src: 'PubMed', via: 'PubMed', term: 'Topical corticosteroids', dz: ['Atopic Dermatitis'], product: 'Landscape', type: 'Real-world', intent: 'Real-world use', intent_why: 'study type: Real-world',access: 'Full text', prio: 'Of interest', score: 65, sponsor: 'Eli Lilly', keywords: [],
-    link: 'https://journals.sagepub.com/doi/10.1177/17103568261472596',
-    summary: 'Adelphi AD DSP analysis (n=619): 30.2% of adults with moderate to severe AD had uncontrolled disease despite treatment.',
-    points: ['Uncontrolled patients: 36.4% on topicals only, 63.6% on systemics ± topicals. Oral/injected corticosteroid use was twice as high in uncontrolled patients on systemics (29% vs 15%).', 'Flares, HCP dissatisfaction and deteriorating AD were the most common criteria for "uncontrolled".', 'Uncontrolled patients had worse DLQI, POEM and work impairment; absenteeism seen only in systemic-treated groups.'],
-    why: 'Unmet-need framing: a large share of treated moderate to severe AD remains uncontrolled. Useful background for topical positioning discussions; sponsor-funded.' },
-  { id: 4, title: 'Patient experience and preferences for treatments in atopic dermatitis', cite: 'Dasilva DR et al. · Dermatology and Therapy · 2026', meta: 'Dasilva DR et al. · Dermatol Ther 2026 · Survey', src: 'Google Scholar', via: 'Springer', term: 'Topical corticosteroids', dz: ['Atopic Dermatitis'], product: 'Landscape', type: 'Survey', intent: 'Patient perspective', intent_why: 'study type: Survey',access: 'Full text', prio: 'Of interest', score: 65, sponsor: 'Not stated', keywords: ['Phototherapy'],
-    link: 'https://link.springer.com/article/10.1007/s13555-026-01912-w',
-    summary: 'Patient survey (n=43) on what matters most in AD treatment and why patients switch.',
-    points: ['Top priorities: itch control (70%), skin clearance (58%), safety/side effects (50%).', 'Treatment goal reached by 29% on topicals ± phototherapy vs 55% on systemics ± topicals.', 'Switching mostly due to lack of efficacy: 62% topical to topical, 38% topical/phototherapy to systemic. 83% interested in a molecular test to guide treatment.'],
-    why: 'Small sample, but confirms itch and clearance as the decision drivers, which is where topical messaging should sit.' },
-  { id: 10, title: 'Breaking the cycle of chronic hand eczema: a case report on a novel combination approach with delgocitinib and tralokinumab', cite: 'Grisnik E et al. · Journal of Skin · 2026', meta: 'Grisnik E et al. · J Skin 2026 · Case report', src: 'Google Scholar', via: 'SKIN (dermsquared)', term: 'Delgocitinib', dz: ['Atopic Dermatitis'], product: 'Competitor', type: 'Case report', intent: 'Efficacy', intent_why: 'case report about a treatment',access: 'Full text', prio: 'Of interest', score: 65, sponsor: 'Not stated', keywords: ['Delgocitinib', 'Biologics', 'Hands'],
-    link: 'https://skin.dermsquared.com/skin/article/view/4366/2942',
-    summary: '45-year-old woman with 5-year chronic hand eczema, recalcitrant to TCS, TCI and systemic corticosteroids.',
-    points: ['Delgocitinib 2% cream BID monotherapy for 16 weeks with persistent disease activity.', 'Tralokinumab added (600 mg loading, 300 mg Q2W): marked improvement at 12 weeks, complete clearance at week 40, no AEs.'],
-    why: 'Single case of a topical JAK plus biologic combination in CHE. Illustrates how delgocitinib is being used in practice alongside systemics.' },
-  { id: 7, title: 'Iatrogenic Cushing syndrome secondary to prolonged topical corticosteroid therapy in an infant with atopic dermatitis: a case report', cite: 'Dahan L et al. · IJCSMR · 2026', meta: 'Dahan L et al. · IJCSMR 2026 · Case report', src: 'Google Scholar', via: 'journalofmedical.org', term: 'Topical corticosteroids', dz: ['Atopic Dermatitis'], product: 'Class', type: 'Case report', intent: 'Safety', intent_why: 'title: "Cushing"',access: 'Full text', prio: 'Of interest', score: 65, sponsor: 'Not stated', keywords: ['Topical corticosteroids', 'Infants'],
-    link: 'https://journalofmedical.org/articles/340',
-    summary: 'Cushing syndrome from systemic absorption of high-potency TCS in an 11-month-old infant with AD after 6 months of use (Morocco).',
-    points: ['Authors note infants are especially vulnerable: large body surface area to weight, thin skin, immature barrier.', 'Emphasises parental education and regular follow-up on TCS use.'],
-    why: 'TCS safety case supporting the need for steroid-sparing options in infants and young children.' },
-  { id: 6, title: 'Psychiatric comorbidities in seborrheic dermatitis: a cross-sectional analysis using a multi-institute electronic health record database', cite: 'Tang A et al. · Journal of Affective Disorders · 2026', meta: 'Tang A et al. · J Affect Disord 2026 · Cross-sectional', src: 'Google Scholar', via: 'ScienceDirect', term: 'Roflumilast seborrheic dermatitis', dz: ['Seb Derm'], product: 'Landscape', type: 'Cross-sectional', intent: 'Disease state', intent_why: 'title: "Psychiatric"',access: 'Abstract', prio: 'Of interest', score: 65, sponsor: 'Not stated', keywords: [],
-    link: 'https://www.sciencedirect.com/science/article/abs/pii/S0165032726011134',
-    summary: 'Epic Cosmos EHR analysis comparing psychiatric comorbidity in seborrheic dermatitis (n=1,893,677) with benign melanocytic nevi (n=5,362,262).',
-    points: ['Higher odds of depression (OR 1.27), anxiety (1.10), sleep disorders (1.15) and SSRI use (1.10) in SebDerm.', 'Suicidal ideation documented in 2.4% vs 1.1% (OR 2.10), more pronounced in males and ages 50–65.'],
-    why: 'Disease-burden evidence for seb derm: visible facial and scalp involvement and stigma drive psychological burden. Supports the case for effective treatment.' },
-  { id: 8, title: 'Association of seborrheic dermatitis and psoriasis and impact on healthcare utilization in the United States', cite: 'Pandey A, Chovatiya R et al. · Archives of Dermatological Research · 2026', meta: 'Pandey A et al. · Arch Dermatol Res 2026 · Cross-sectional', src: 'PubMed', via: 'PubMed', term: 'Roflumilast psoriasis', dz: ['Seb Derm', 'Psoriasis'], product: 'Landscape', type: 'Cross-sectional', intent: 'Real-world use', intent_why: 'title: "utilization"',access: 'Abstract', prio: 'Of interest', score: 65, sponsor: 'Not stated', keywords: [],
-    link: 'https://link.springer.com/article/10.1007/s00403-026-04886-z',
-    summary: 'NAMCS analysis of the overlap between seborrheic dermatitis and psoriasis.',
-    points: ['Patients with psoriasis had >8-fold odds of a comorbid SD diagnosis (aOR 8.36) and vice versa (aOR 8.19).', 'No difference in visit count or physician time. Patients with both were more often prescribed topical antifungals, TCS/vitamin D combinations and topical sulfur.'],
-    why: 'Overlap population relevant to a product with both psoriasis and seb derm indications.' },
-  { id: 12, title: 'Aryl hydrocarbon receptor agonist-based phototherapy for psoriasis: combinational therapy with tapinarof and narrowband ultraviolet B', cite: 'Shimizu Y et al. · Journal of Dermatology · 2026', meta: 'Shimizu Y et al. · J Dermatol 2026', src: 'PubMed', via: 'PubMed', term: 'Tapinarof', dz: ['Psoriasis'], product: 'Competitor', type: 'Unknown', intent: 'Other', intent_why: 'no rule matched',access: 'Title only', prio: 'FYI', score: 50, sponsor: 'Unknown', keywords: ['Tapinarof', 'Phototherapy'],
-    link: 'https://pubmed.ncbi.nlm.nih.gov/42693807/',
-    summary: 'No abstract available on PubMed. Title suggests a combination of tapinarof with NB-UVB phototherapy in psoriasis.',
-    points: [],
-    why: 'Needs the full text before any summary can be written. Flag for manual retrieval.' },
-  { id: 13, title: 'Topical ruxolitinib for resistant dupilumab-associated facial dermatitis', cite: 'Xu G, Urriola N · Internal Medicine Journal · 2026', meta: 'Xu G, Urriola N · Intern Med J 2026', src: 'PubMed', via: 'PubMed', term: 'Ruxolitinib topical', dz: ['Atopic Dermatitis'], product: 'Competitor', type: 'Unknown', intent: 'Safety', intent_why: 'title: "dupilumab-associated"',access: 'Title only', prio: 'FYI', score: 50, sponsor: 'Unknown', keywords: ['Ruxolitinib', 'Biologics', 'Face'],
-    link: 'https://pubmed.ncbi.nlm.nih.gov/42706824/',
-    summary: 'No abstract available on PubMed. Title suggests topical ruxolitinib used for facial dermatitis arising on dupilumab.',
-    points: [],
-    why: 'Needs the full text before any summary can be written. Flag for manual retrieval.' },
-  { id: 19, title: 'PubMed 42750312 – title not yet retrieved', cite: 'PubMed record 42750312', meta: 'Link only · needs manual lookup', src: 'PubMed', via: 'PubMed', term: '—', dz: ['Unassigned'], product: 'Unassigned', type: 'Unknown', intent: 'Other', intent_why: 'no rule matched',access: 'Title only', prio: 'FYI', score: 50, sponsor: 'Unknown', keywords: [],
-    link: 'https://pubmed.ncbi.nlm.nih.gov/42750312/',
-    summary: 'Only a PubMed link was received; the record has not been resolved yet.',
-    points: [],
-    why: 'Open the link to assign a term, disease and priority.' },
-  { id: 9, title: 'Clinical improvement of necrobiosis lipoidica with topical ruxolitinib', cite: 'Guy M et al. · JAAD Case Reports · 2026', meta: 'Guy M et al. · JAAD Case Rep 2026 · Case report', src: 'PubMed', via: 'PubMed', term: 'Ruxolitinib topical', dz: ['Other'], product: 'Competitor', type: 'Case report', intent: 'Efficacy', intent_why: 'title: "improvement"',access: 'Full text', prio: 'Low', score: 0, sponsor: 'Not stated', keywords: ['Ruxolitinib'],
-    link: 'https://www.jaadcasereports.org/article/S2352-5126(26)00553-9/fulltext',
-    summary: '51-year-old woman with necrobiosis lipoidica (history of diabetes, hypothyroidism, hand dermatitis) recalcitrant to TCS, TCI and phototherapy.',
-    points: ['Significant improvement after 2 months of ruxolitinib 1.5% cream BID, continuing through 20 months of follow-up.', 'Stable on continued ruxolitinib plus barrier cream.'],
-    why: 'Off-label competitor use outside the core disease set. Low priority; note only as part of the broader topical JAK landscape.' },
-  { id: 14, title: 'Recent advances in hidradenitis suppurativa therapeutics: a focus on existing and future medical therapeutics', cite: 'Marquez CR · Expert Opinion on Emerging Drugs · 2026', meta: 'Marquez CR · Expert Opin Emerg Drugs 2026 · Review · oral PDE4 context', src: 'Google Scholar', via: 'Taylor & Francis', term: 'Orismilast', dz: ['HS'], product: 'Class', type: 'Review', intent: 'Review & guidance', intent_why: 'study type: Review',access: 'Abstract', prio: 'Low', score: 0, sponsor: 'Not stated', keywords: [],
-    link: 'https://doi.org/10.1080/14728214.2026.2731005',
-    summary: 'Narrative review of current and emerging HS therapies.',
-    points: ['Small-molecule PDE-4 inhibitors are discussed primarily as oral systemic agents; roflumilast is grouped with apremilast and orismilast in that context.'],
-    why: 'HS is in scope, but the roflumilast mention is in an oral-therapy context, so relevance to the topical franchise is limited.' },
-  { id: 11, title: 'Modes of interaction between tapinarof and model lipid membranes mimicking stratum corneum lipid composition and related transdermal transport in human skin', cite: 'Zatloukalová M et al. · Biochimica et Biophysica Acta – Biomembranes · 2026', meta: 'Zatloukalová M et al. · BBA Biomembr 2026 · Preclinical', src: 'PubMed', via: 'PubMed', term: 'Tapinarof', dz: ['Other'], product: 'Competitor', type: 'Preclinical', intent: 'Mechanism', intent_why: 'study type: Preclinical',access: 'Abstract', prio: 'Low', score: 0, sponsor: 'Not stated', keywords: ['Tapinarof'],
-    link: 'https://pubmed.ncbi.nlm.nih.gov/42722183/',
-    summary: 'Biophysical study of tapinarof interaction with stratum corneum-like lipid membranes.',
-    points: ['Tapinarof increases membrane fluidity and may disrupt the bilayer; at higher concentrations it self-associates and perturbs the membrane (reduced lipid order and thickness).'],
-    why: 'Preclinical mechanism-of-penetration data. Low relevance for MSL conversations.' },
-
-  // ignored by the exclusion rules
-  { id: 18, rule: 'Duplicate', note: 'Same article already in feed from PubMed', title: 'Allergic contact dermatitis to parabens associated with topical roflumilast cream: a case series of 2 patients', cite: 'Waldal GL et al. · Dermatitis · 2026 (ResearchGate copy)', meta: 'Waldal GL et al. · ResearchGate copy', src: 'Google Scholar', via: 'ResearchGate', term: 'Roflumilast cream', dz: ['Atopic Dermatitis'], product: 'Roflumilast', type: 'Case series', intent: 'Safety', intent_why: 'title: "Allergic"',access: 'Full text', prio: 'Must read', score: 100, sponsor: 'Not stated', keywords: ['Roflumilast'],
-    link: 'https://www.researchgate.net/publication/414257590_Allergic_Contact_Dermatitis_to_Parabens_Associated_With_Topical_Roflumilast_Cream_A_Case_Series_of_2_Patients',
-    summary: 'ResearchGate copy of the paraben contact-dermatitis case series already received from PubMed.', points: [], why: 'Duplicate of the PubMed record; kept here so the duplicate rule can be checked.' },
-  { id: 16, rule: 'Off-target', note: 'Oral TYK2 agent; disease not in scope', title: 'Deucravacitinib for refractory lichen planus with post-inflammatory hyperpigmentation in skin of color', cite: 'Dutt A, Suhling M, Mirza A, Logas C · JAAD Case Reports · 2026', meta: 'Dutt A et al. · JAAD Case Rep 2026', src: 'Google Scholar', via: 'JAAD Case Reports', term: 'Topical Janus kinase inhibitor', dz: ['Other'], product: 'Class', type: 'Case report', intent: 'Efficacy', intent_why: 'case report about a treatment',access: 'Full text', prio: 'Low', score: 0, sponsor: 'Not stated', keywords: ['Oral JAK / TYK2 inhibitors', 'Skin of color'],
-    link: 'https://www.jaadcasereports.org/article/S2352-5126(26)00493-5/fulltext',
-    summary: 'Case report of oral deucravacitinib in refractory lichen planus.', points: [], why: 'Oral TYK2 inhibitor in a disease outside the surveillance scope; matched the JAK search term only loosely.' },
-  { id: 15, rule: 'Off-target', note: 'Diagnostic case; no product or class mentioned', title: 'A diagnostic pitfall in psoriasiform lesions: from psoriasis to dermatomyositis', cite: 'Christopher PM, Mawu FO, Durry MF, Adji A · JAAD Case Reports · 2026', meta: 'Christopher PM et al. · JAAD Case Rep 2026', src: 'Google Scholar', via: 'JAAD Case Reports', term: 'Roflumilast psoriasis', dz: ['Psoriasis'], product: 'Unassigned', type: 'Case report', intent: 'Disease state', intent_why: 'title: "diagnostic"',access: 'Full text', prio: 'Low', score: 0, sponsor: 'Not stated', keywords: [],
-    link: 'https://www.jaadcasereports.org/article/S2352-5126(26)00492-3/fulltext',
-    summary: 'Case report on distinguishing dermatomyositis from psoriasis.', points: [], why: 'Diagnostic case with no product or drug class in the title or abstract; matched "psoriasis" only.' }
 ];
 
-// The search settings the page was generated with (surveillance.py replaces this block); keys says which API keys that run had.
+// The search settings of the last run (the app, or surveillance.py's page fill, replaces this block); keys says which API keys that run had.
 const SETTINGS = {
-  sources: ['pubmed', 'openalex', 'scholar'], scholar_pages: 1, priority_keywords: [], keys: { pubmed: true, openalex: false, scholar: true },
-  terms: [
-    { term: 'Tapinarof', product_category: 'Competitor', pubmed_query: 'tapinarof[tiab]' },
-    { term: 'Orismilast', product_category: 'Competitor', pubmed_query: 'orismilast[tiab]' },
-    { term: 'Roflumilast cream', product_category: 'Roflumilast', pubmed_query: 'roflumilast[tiab] AND cream[tiab]' },
-    { term: 'Roflumilast dermatitis', product_category: 'Roflumilast', pubmed_query: 'roflumilast[tiab] AND dermatitis[tiab]' },
-    { term: 'Roflumilast foam', product_category: 'Roflumilast', pubmed_query: 'roflumilast[tiab] AND foam[tiab]' },
-    { term: 'Roflumilast psoriasis', product_category: 'Roflumilast', pubmed_query: 'roflumilast[tiab] AND psoriasis[tiab]' },
-    { term: 'Roflumilast seborrheic dermatitis', product_category: 'Roflumilast', pubmed_query: 'roflumilast[tiab] AND seborrheic[tiab]' },
-    { term: 'Delgocitinib', product_category: 'Competitor', pubmed_query: 'delgocitinib[tiab]' },
-    { term: 'Ruxolitinib', product_category: 'Competitor', pubmed_query: 'ruxolitinib[tiab] AND (dermatitis[tiab] OR vitiligo[tiab] OR psoriasis[tiab] OR eczema[tiab] OR skin[tiab])' },
-    { term: 'Ruxolitinib topical', product_category: 'Competitor', pubmed_query: 'ruxolitinib[tiab] AND (cream[tiab] OR topical[tiab])' },
-    { term: 'Topical corticosteroids', product_category: 'Class', pubmed_query: 'topical corticosteroid*[tiab] AND (dermatitis[tiab] OR psoriasis[tiab] OR eczema[tiab])' },
-    { term: 'Topical roflumilast', product_category: 'Roflumilast', pubmed_query: 'topical roflumilast[tiab]' },
-    { term: 'Topical Janus kinase inhibitor', product_category: 'Class', pubmed_query: 'topical[tiab] AND (JAK inhibitor*[tiab] OR Janus kinase inhibitor*[tiab])' },
-    { term: 'Topical steroid withdrawal', product_category: 'Class', pubmed_query: 'topical steroid withdrawal[tiab]' }
-  ]
+  sources: [], scholar_pages: 1, priority_keywords: [], keys: {}, terms: []
 };
 
 DATA.forEach(a => { a.src = a.src ?? a.feed; a.via = a.via ?? a.fetched_from; a.term = a.term ?? a.matched_term; a.dz = a.dz ?? a.disease; a.type = a.type ?? a.study_type; a.prio = a.prio ?? a.priority; a.link = a.link ?? a.url; a.cite = a.cite ?? a.citation; a.id = a.id ?? a.item_key; a.points = a.points || []; a.dz = a.dz || ['Other']; a.rule = a.rule || null; a.decision = normDecision(a.decision); a.intent = a.intent || 'Other'; a.intent_why = a.intent_why || ''; a.keywords = a.keywords || []; a.reasons = a.reasons || []; a.l3 = a.l3 || []; a.score = a.score || 0; a.l3i = a.l3i || []; a.pen = a.pen || []; a.auto = a.auto || null; a.emailed = a.emailed || null; });
 const ACCESS = { 'Full text': 'p-full', 'Abstract': 'p-abs', 'Title only': 'p-title' };
 const ACCESS_NOTE = { 'Full text': 'Full text retrieved, so the summary draws on the full paper, not only the abstract.', 'Abstract': 'Abstract only. The summary is based on the abstract; full text is behind a paywall or not yet retrieved.', 'Title only': 'Title only. No abstract is available, so no summary can be written until the full text is retrieved.' };
-// the priorities by the lowest L3 score in each, and the points a Settings L3 keyword is worth (L3_BANDS and
-// OWN_KEYWORD_POINTS in surveillance.py); Must read articles go to the accepted feed unless a reviewer decided otherwise
-const BANDS = [[85, 'Must read'], [60, 'Of interest'], [40, 'FYI'], [0, 'Low']];
-const OWN_POINTS = 60;
+// The lists below are rows of the rules table, which the app puts in window.CONFIG on every request: the priorities by
+// the lowest L3 score in each (Must read articles go to the accepted feed unless a reviewer decided otherwise), the
+// points a Settings L3 keyword is worth, the diseases and intents the filters list, and the reasons offered when a
+// reviewer accepts or ignores an article. Nothing here is a default: without window.CONFIG the lists are empty.
+const CONFIG = window.CONFIG || {};
+const BANDS = CONFIG.bands || [];
+const OWN_POINTS = CONFIG.own_keyword_points;
 const PRIO = { 'Must read': '#0f6e6b', 'Of interest': '#3d3c38', FYI: '#6b6a64', Low: '#8a8983' };
 // shown by the ⓘ beside Priority
 const PRIO_NOTE = {
@@ -717,15 +613,12 @@ const FEEDS = { accepted: 'Accepted feed', review: 'Review feed', ignored: 'Igno
 const NOUN = { accepted: 'accepted articles', review: 'articles to review', ignored: 'ignored articles' };
 const EMPTY = { accepted: 'Nothing accepted yet. Accept articles from the review feed; Must read articles and those sent in an Articles of Interest email are accepted automatically.', review: 'Nothing left to review.', ignored: 'Nothing has been ignored.' };
 const MOVED = { accepted: 'Accepted', review: 'Moved back to the review feed', ignored: 'Ignored' };
-const DISEASES = ['Psoriasis', 'Atopic Dermatitis', 'Seb Derm', 'HS', 'Vitiligo', 'Other'];
-const INTENTS = ['Safety', 'Efficacy', 'Real-world use', 'Mechanism', 'Disease state', 'Patient perspective', 'Review & guidance', 'Other'];   // as in surveillance.py
+const DISEASES = CONFIG.diseases || [];
+const INTENTS = CONFIG.intents || [];
 const termsOf = a => (a.term || '').split(', ').filter(Boolean);
 // Accepting or ignoring asks why: the reviewer ticks keywords of the article and reasons from these lists (no free
 // text, so reasons can be counted later). They are saved with the decision, in the reasons column of the decisions table.
-const REASONS = {
-  accepted: ['New efficacy data', 'Safety signal', 'Competitive intelligence', 'Supports our positioning', 'Unmet need', 'Off-label use', 'Guidelines / consensus', 'Useful for MSLs', 'Key author'],
-  ignored: ['Off-target', 'Disease out of scope', 'Oral / systemic use', 'Not dermatology', 'Preclinical only', 'Nothing new', 'Duplicate', 'Too little information', 'Low quality', 'Not in English'],
-};
+const REASONS = CONFIG.reasons || { accepted: [], ignored: [] };
 const UNINFORMATIVE = ['Other', 'Unassigned', 'Unknown', 'Article', 'Not stated', 'None declared', ''];
 // the article's tags, then the keywords surveillance.py found in its title and abstract (tag_keywords); the study
 // type is left out when the intent already says it (Real-world → Real-world use)
@@ -1357,6 +1250,7 @@ const FIELD = { title: 'the title', title_abstract: 'the title or abstract' };
 function renderL3Rules() {
   const rules = SETTINGS.l3_rules || [], el = document.getElementById('l3Rules');
   document.getElementById('ownPoints').textContent = OWN_POINTS;
+  document.querySelectorAll('.ownp').forEach(e => { e.textContent = OWN_POINTS; });
   document.getElementById('l3Bands').innerHTML = BANDS.map(([low, band], i) =>
     `<b style="color:${PRIO[band]}">${band}</b> ${i ? (low ? `${low}–${BANDS[i - 1][0] - 1}` : `under ${BANDS[i - 1][0]}`) : `${low}+`}`).join(' · ') +
     '. Must read articles go straight to the accepted feed, as do the articles sent in an Articles of Interest email, unless a reviewer decided otherwise.';

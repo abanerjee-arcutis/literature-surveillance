@@ -1,4 +1,4 @@
-"""Score the L1 pool and the emailed articles with the L3 reasons (L3_INTENTS and L3_PUSH_DOWN in surveillance.py),
+"""Score the L1 pool and the emailed articles with the L3 reasons (the active rows of the _intents table),
 and compare with the priority rule the daily job used before them.
 
     python backtest.py [--list-misses] [--list-false] [--gaps]
@@ -8,23 +8,20 @@ and compare with the priority rule the daily job used before them.
 --gaps         emailed articles the L1 terms don't find, by their best reason (what L1 is missing)
 """
 import collections
-import os
 import sys
 
-from common import ROOT, funding_text, load, study, sv
+from common import config, funding_text, load, study, sv
 
-WINDOW = ("2025-12-20", "2026-10-10")   # an unemailed article dated outside the emails' months can't count against them
-
-emails, pool, flagged = load()
+emails, pool, flagged = load()                  # also loads sv.RULES from the tables
+WINDOW = config()["window"]                     # an unemailed article dated outside the emails' months can't count against them
 lit = [a for a in emails if not a.get("not_literature")]
-term_cat = {t["term"]: t["product_category"] for t in sv.clean_terms(sv.read_csv(os.path.join(ROOT, "terms.csv")))}
-rules = sv.read_csv(os.path.join(ROOT, "exclusions.csv"))
+term_cat = {t["term"]: t["product_category"] for t in config()["terms"]}
 
 
 def score(r):
     """(L3 score, ids of the reasons matched, best first, ids of the push-down rules fired), as the daily job scores
     the article without L3 keywords from Settings (none are saved)."""
-    s, hits, pushed = sv.l3_score(sv.DEFAULT_L3_RULES, r["title"], r.get("abstract"), study(r), funding_text(r))
+    s, hits, pushed = sv.l3_score(sv.RULES["l3"], r["title"], r.get("abstract"), study(r), funding_text(r))
     return s, [h["id"] for h in hits], [p["id"] for p in pushed]
 
 
@@ -33,7 +30,7 @@ def old_priority(r):
     cats = {term_cat.get(t, "Class") for t in r.get("matched_terms") or []}
     product = "Roflumilast" if "Roflumilast" in cats else "Competitor" if "Competitor" in cats else "Class"
     study_type = study(r)
-    if sv.apply_rules(rules, r["title"], r.get("abstract")):
+    if sv.apply_rules(r["title"], r.get("abstract")):
         return "Low"
     if not r.get("abstract"):
         return "Check"
@@ -69,7 +66,7 @@ for name, key in (("L3 score", lambda x: x["score"]), ("old", lambda x: cur_rank
     for k in (50, 100, 200, 300):
         f = sum(x["flagged"] for x in ranked[:k])
         print(f"  {name:8s} top {k:3d}: {f:3d} emailed ({f / len(P):.0%} of emailed)")
-bands = [band for _, band in sv.L3_BANDS]
+bands = [band for _, band in sv.RULES["bands"]]
 print("\nL3 priority (L1 pool):")
 for b in bands:
     xs = [x for x in rows if sv.l3_band(x["score"]) == b]
@@ -82,7 +79,7 @@ for b in ("High", "Medium", "Check", "Low"):
     f = sum(x["flagged"] for x in xs)
     print(f"  {b:12s} {len(xs):4d} articles, {f:3d} emailed ({f / max(1, len(xs)):.0%})")
 print("\nper reason (L1 pool): matched, emailed among matched, share of all emailed it catches")
-for it in sv.L3_INTENTS:
+for it in (r for r in sv.RULES["l3"] if r["kind"] == "intent"):
     xs = [x for x in rows if it["intent_id"] in x["intents"]]
     f = sum(x["flagged"] for x in xs)
     print(f"  {it['intent_id']:20s} w{it['weight']:3d}  {len(xs):4d}  {f:3d} ({f / max(1, len(xs)):.0%})  {f / len(P):.0%}")

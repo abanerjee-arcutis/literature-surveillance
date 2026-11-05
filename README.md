@@ -2,21 +2,23 @@
 
 One script. Searches PubMed, OpenAlex and Google Scholar for a list of terms, merges the same article
 found by several sources into one record, filters with exclusion rules, tags each article (disease,
-product, study type, access level, sponsor, priority), writes a summary from the abstract, and renders
-the Literature Surveillance page.
+product, study type, access level, sponsor, priority), writes a summary from the abstract, and saves the
+rows the Literature Surveillance page is built from.
+
+The code holds no data: the search terms, exclusion rules, tagging rules, L3 reasons, priority bands and the
+reasons offered to reviewers are all rows in Unity Catalog tables (`tables.sql`, `ci_mails/intents.sql`), and so are
+the articles, decisions and run log. Change them in the app's Settings or in SQL, not in the code.
 
 To run it daily on Databricks with a shared review page, follow [DEPLOY.md](DEPLOY.md).
 
 ## Run
 
-```
-pip install requests
-python surveillance.py --api-key YOUR_NCBI_KEY --serpapi-key YOUR_SERPAPI_KEY --email you@arcutis.com
-```
-
-Each run searches the last 90 days (`--days`). Open `literature_update.html`. Run it again tomorrow, next week, whenever: only new articles are
-fetched; everything already seen is kept in `data/articles.json` and re-tagged with the current
-terms and rules.
+The job reads its terms, rules and emailed articles from tables and writes the store back, so it runs on
+Databricks (Spark), daily, as set up in [DEPLOY.md](DEPLOY.md). To run it by hand there:
+`databricks bundle run lit_surv_daily`, or as a script with `--tables medical_prod.apps.literature_surveillance`.
+Each run searches the last 90 days (`--days`). Run it again tomorrow, next week, whenever: only new articles are
+fetched; everything already seen is kept in the articles table and re-tagged with the current terms and rules.
+The offline test (`python tests/test_offline.py`) needs neither.
 
 ## The page
 
@@ -85,31 +87,22 @@ Useful options:
 |---|---|
 | `--days 60` | look-back window in days (default 90) |
 | `--since 2026-06-01 --until 2026-07-06` | exact window instead of `--days` |
-| `--sources pubmed,openalex` | which sources to search (default: as saved in Settings, else all three) |
+| `--sources pubmed,openalex` | which sources to search (default: as saved in Settings) |
 | `--scholar-pages 2` | pages of 20 Scholar results per term (default: as saved in Settings, else 1); each page is one SerpApi search |
-| `--terms path.csv` | search terms from this CSV, even when terms were saved in Settings |
 | `--show-days 180` | how far back the page lists articles (default 90) |
-| `--no-fetch` | skip searching; re-tag and re-render the local store (after editing terms or rules) |
+| `--no-fetch` | skip searching; re-tag and re-score the stored articles (after editing rules) |
 | `--rebuild` | re-download every stored PMID from PubMed (after a parser fix) |
-| `--data-dir path` | where `articles.json`, `decisions.csv` and `settings.json` live (default `data/`) |
-| `--tables catalog.schema.prefix` | keep the store, decisions and settings in the tables `prefix_articles`, `prefix_decisions` and `prefix_settings` instead, log each run in `prefix_runs`, and write no page: the Databricks app builds it from the tables (`tables.sql`; needs Spark, so on Databricks only). Files found in `--data-dir` are imported once, then renamed `*.imported`; with no settings saved yet, `terms.csv` is saved as the first |
-| `--out path.html` | where to write the page |
+| `--tables catalog.schema.prefix` | required: the tables `prefix_articles`, `_decisions`, `_settings`, `_runs`, `_rules`, `_intents` and `_ci_articles` (`tables.sql`, `ci_mails/intents.sql`) hold everything the job reads and writes; no page is written, the Databricks app builds it from the tables. Needs Spark, so on Databricks only |
 
 ## Files
 
 | File | Purpose |
 |---|---|
-| `terms.csv` | one row per search term: display name, product category, PubMed query (`[tiab]` = title/abstract). Optional columns `openalex_query` and `scholar_query` override the queries derived from the PubMed one. Used until terms are saved in Settings |
-| `exclusions.csv` | regex rules; `applies_to` is `title` or `title_abstract` |
-| `app/template.html`, `app/page.py` | the reviewed wireframe, and the code that replaces its data block (used by the script for the page file and by the app) |
-| `data/articles.json` | the growing store, one record per article (created on first run) |
-| `data/decisions.csv` | optional; `pmid,decision` with `accepted`, `ignored` or `restored` (back to review despite an exclusion rule) to persist reviewer choices (`pmid` holds the article id shown on the page; the older `removed` still means ignored). The app also writes `by`, `at` and `reasons` (the chips ticked, separated by `;`), the record of why each article was accepted or ignored; files without the `reasons` column still work |
-| `data/settings.json` | optional; the search terms, sources, Scholar pages and L3 priority keywords saved from the page's Settings. When present it replaces `terms.csv` and the default `--sources` / `--scholar-pages`; delete it to go back to `terms.csv` |
-| `data/ci_articles.json` | optional; the articles sent in Articles of Interest emails, as the rows of the `_ci_articles` table (`ci_mails/build_tables.py --dry-run` writes them to `ci_mails/work/tables_payload.json`). Each is put on the accepted feed; one the search has not found is added to the store with the source *Email* |
+| `app/template.html`, `app/page.py` | the page template (no sample data in it) and the code that fills its data block (used by the app) |
 | `ci_mails/` | how the L3 reasons were learned from the INFORM Articles of Interest emails, and the script that loads the `_intents` and `_ci_articles` tables (its own README) |
-| `tests/test_offline.py` | parses fixtures and checks tagging, summaries, de-duplication and rendering without network |
+| `tests/test_offline.py`, `tests/fixture_config.json` | parses fixtures and checks tagging, scoring, summaries, de-duplication and the page data without network; the fixture is a snapshot of the rules, L3 reasons and terms tables |
 | `databricks.yml` | Databricks bundle: the daily job and the review app |
-| `tables.sql` | on Databricks, the three files above become the tables `medical_prod.apps.literature_surveillance_articles` (one row per article; the whole record is in its `record` column, and the page's copy in `page_row`), `_decisions` (one row per decided article, with `reasons` as an array) and `_settings` (one row per Save; the newest applies), plus `_runs` (one row per run: what it searched and found) |
+| `tables.sql` | the tables `medical_prod.apps.literature_surveillance_articles` (one row per article; the whole record is in its `record` column, and the page's copy in `page_row`), `_decisions` (one row per decided article, with `reasons` as an array), `_settings` (one row per Save; the newest applies), `_runs` (one row per run) and `_rules` (the tagging, filtering and page-list rules; `kind` says which). `ci_mails/intents.sql` adds `_intents` (the L3 reasons) and `_ci_articles` |
 | `app/` | the Databricks app that builds the page from those tables on every visit and saves Accept/Ignore/Restore clicks and Settings to them |
 
 ## How the three sources are combined
@@ -126,11 +119,11 @@ Useful options:
 - **Disease** – keyword match on title, abstract and MeSH (psoriasis, atopic/eczema, seborrheic, hidradenitis, vitiligo) else *Other*.
 - **Product** – Roflumilast if any matched term is a roflumilast term, else Competitor, else Class.
 - **Study type** – PubMed `PublicationType` first (Phase 3, RCT, Case Reports, Observational Study, Review…), OpenAlex work type for OpenAlex-only records, then keywords.
-- **Intent** – what the article is about: *Safety*, *Efficacy*, *Real-world use*, *Mechanism*, *Disease state*, *Patient perspective*, *Review & guidance* or *Other*. Rules in `INTENT_RULES` (in `surveillance.py`) are tried in order against the study type and title; the first match wins. Safety words (adverse, toxicity, allergic, *drug*-induced, *after … therapy*…) count only when the title does not also claim efficacy or treating the event, so "Efficacy and safety of …" trials are *Efficacy*. Case reports with no other match are *Efficacy* when the title names a treatment ("for", "with"), else *Disease state*. The abstract is used only when the title and study type say nothing, since nearly every abstract mentions safety and efficacy. The page shows which rule decided it (article page → *Intent*).
+- **Intent** – what the article is about: *Safety*, *Efficacy*, *Real-world use*, *Mechanism*, *Disease state*, *Patient perspective*, *Review & guidance* or *Other*. Rules (the `intent_rule` rows of the `_rules` table) are tried in order against the study type and title; the first match wins. Safety words (adverse, toxicity, allergic, *drug*-induced, *after … therapy*…) count only when the title does not also claim efficacy or treating the event, so "Efficacy and safety of …" trials are *Efficacy*. Case reports with no other match are *Efficacy* when the title names a treatment ("for", "with"), else *Disease state*. The abstract is used only when the title and study type say nothing, since nearly every abstract mentions safety and efficacy. The page shows which rule decided it (article page → *Intent*).
 - **Access** – *Full text* when the open-access full text was retrieved from PMC (via E-utilities `db=pmc`), *Abstract* when PubMed, OpenAlex or PMC has one, else *Title only*. Each article carries up to five links: PMC full text, publisher page (DOI), PubMed record, another open-access copy (OpenAlex), and the page Google Scholar pointed to.
 - **Sponsor** – from the conflict-of-interest statement, grant agencies / OpenAlex funders, or a company name in the abstract; else *Not stated*.
-- **Keywords** (offered in the why-accept / why-ignore dialog) – `KEYWORDS` in `surveillance.py`: drugs and drug classes, patient groups (pediatric, infants, skin of color…), body sites (face, scalp, intertriginous…) and evidence words (long-term, head-to-head, itch, quality of life…). A keyword counts when it is in the title, or mentioned at least twice in the abstract (a single mention is often a list of earlier treatments); at most eight per article.
-- **Priority** – the L3 score, learned from the INFORM Articles of Interest emails (`ci_mails/`). `L3_INTENTS` in `surveillance.py` holds 23 reasons to read (own product 100 points; comparisons and guidelines 85; competitor safety and topical steroid harms 80; seborrheic dermatitis and TSW 75; … pregnancy, pipeline 50), each a set of keyword lists that must all match, in the title or in the title and abstract, with words that rule it out; `L3_PUSH_DOWN` holds 9 rules that take points off what was never sent (congress abstracts, Arcutis's own trial publications and funded work, oral JAK inhibitors, vitiligo and alopecia areata, lab studies, steroid phobia and social media, non-English, book chapters and preprints). Score = points of the best reason + 5 for each further reason (at most 15 more) − push-down points. **Must read** 85+, **Of interest** 60–84, **FYI** 40–59, **Low** under 40, or whenever an exclusion rule fired. Keywords match as phrases, ignoring case and punctuation, words as prefixes. With `--tables` the `_intents` table replaces the built-in list when it exists. Feeds list the highest score first.
+- **Keywords** (offered in the why-accept / why-ignore dialog) – the `keyword` rows of the `_rules` table: drugs and drug classes, patient groups (pediatric, infants, skin of color…), body sites (face, scalp, intertriginous…) and evidence words (long-term, head-to-head, itch, quality of life…). A keyword counts when it is in the title, or mentioned at least twice in the abstract (a single mention is often a list of earlier treatments); at most eight per article.
+- **Priority** – the L3 score, learned from the INFORM Articles of Interest emails (`ci_mails/`). The `_intents` table holds 23 reasons to read (own product 100 points; comparisons and guidelines 85; competitor safety and topical steroid harms 80; seborrheic dermatitis and TSW 75; … pregnancy, pipeline 50), each a set of keyword lists that must all match, in the title or in the title and abstract, with words that rule it out; `L3_PUSH_DOWN` holds 9 rules that take points off what was never sent (congress abstracts, Arcutis's own trial publications and funded work, oral JAK inhibitors, vitiligo and alopecia areata, lab studies, steroid phobia and social media, non-English, book chapters and preprints). Score = points of the best reason + 5 for each further reason (at most 15 more) − push-down points. **Must read** 85+, **Of interest** 60–84, **FYI** 40–59, **Low** under 40, or whenever an exclusion rule fired. Keywords match as phrases, ignoring case and punctuation, words as prefixes. With `--tables` the `_intents` table replaces the built-in list when it exists. Feeds list the highest score first.
 - **Summary / key points** – articles with no abstract but PMC full text (common for case reports) are summarised from the paper body: opening sentences, closing sentences of the discussion/conclusion, and sentences with figures as key points. For structured abstracts: one sentence each from Background, Methods and Conclusions; key points are the Results sentences containing numbers. Unstructured abstracts: first two and last sentence. Abstract-only items say so. No language model is involved, so nothing is invented; the wording is the authors' own.
 - **Why it matters** – templated from product, disease, study type and the caveats above (sponsor, single case, indication outside the core set).
 
@@ -160,5 +153,5 @@ PubMed is a citation index, not a full-text library. What the script can summari
 - Google Scholar needs a paid SerpApi plan: one search per term per run (14 terms ≈ 420 searches a month on a daily schedule). Sort-by-date in Scholar covers about the last year.
 - OpenAlex is searched by publication date, so an article indexed long after its publication date can be missed there (PubMed, searched by entry date, still catches it if it is in PubMed).
 - Summaries are extractive. Swapping in a model summary is one function (`summarise`) if wanted later.
-- Opened as a file, the page's Accept/Ignore/Restore buttons and the reasons ticked last for the browser session; to make a decision stick, add a line to `data/decisions.csv`. Settings' Save downloads `settings.json` instead; put it in `data/`. Served by the Databricks app, both are saved to the tables automatically.
+- The page is served only by the Databricks app, which saves decisions (with their reasons) and Settings to the tables. Opened as a plain file, the template is empty and its buttons last one browser session.
 - Settings change what future runs search for. Articles already found stay in the store and on the page; renaming a term leaves older articles tagged with the old name.

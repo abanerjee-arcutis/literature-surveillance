@@ -42,8 +42,8 @@ most of it waiting for access or keys.
 Message you can send your admin:
 
 > I'd like to deploy a small Python job and a Databricks App for literature surveillance. Could you
-> confirm I can (1) create jobs on serverless compute, (2) create Databricks Apps, (3) create four tables
->  in medical_prod.apps, (4) create a secret scope, (5) use a SQL warehouse (which one
+> confirm I can (1) create jobs on serverless compute, (2) create Databricks Apps, (3) create the tables
+>  in medical_prod.apps (seven), (4) create a secret scope, (5) use a SQL warehouse (which one
 > should the app use?), and (6) that serverless compute can reach eutils.ncbi.nlm.nih.gov,
 > api.openalex.org and serpapi.com over HTTPS?
 
@@ -55,23 +55,13 @@ Open PowerShell (or the VS Code terminal) in the project folder:
 
 ```powershell
 cd "C:\Users\AyanBanerjee\Documents\Apps\literature-surveillance"
-copy data\articles.json data\articles.backup.json      # safety copy of your current store
 pip install requests
 python tests\test_offline.py
 ```
 
-You should see `offline test OK`. Then do a real run over one week:
-
-```powershell
-python surveillance.py --days 7 --api-key YOUR_NCBI_KEY --serpapi-key YOUR_SERPAPI_KEY --email you@arcutis.com
-```
-
-Each term prints a count per source, e.g. `Tapinarof   PubMed    6 · OpenAlex    8`, followed by a
-Google Scholar line per term. At the end, `sources: …  found by more than one (shown once)` tells you
-how many duplicates were merged. Open `literature_update.html` and check the **Source** chips
-(PubMed / OpenAlex / Google Scholar).
-
-If this works, the code is fine and anything that fails later is about Databricks setup.
+You should see `offline test OK`. The test needs no network and no Databricks: it checks tagging, scoring,
+de-duplication and the page's data against `tests/fixture_config.json`, a snapshot of the rules, L3 reasons and
+search terms. The job itself reads all of those from tables, so it runs only on Databricks (it needs Spark).
 
 ---
 
@@ -108,7 +98,7 @@ You should see your user name and email.
 
 ---
 
-## Step 3 – Create the storage: four tables
+## Step 3 – Create the storage: the tables
 
 This guide uses the Medical Affairs schema `medical_prod.apps`. If yours is different, replace it
 everywhere, including in `tables.sql`.
@@ -116,13 +106,27 @@ everywhere, including in `tables.sql`.
 In Databricks, click **SQL Editor** in the left sidebar.
 
 Open `tables.sql` from the project folder, paste all of it into the SQL editor, and click **Run**.
-It creates `literature_surveillance_articles`, `_runs`, `_decisions` and `_settings`.
+It creates `literature_surveillance_articles`, `_runs`, `_decisions`, `_settings` and `_rules`.
 Running it again changes nothing.
 
-Optional, for the L3 priority learned from the Articles of Interest emails: `ci_mails/build_tables.py` creates
-and fills `literature_surveillance_intents` (the L3 reasons) and `_ci_articles` (the articles the emails sent),
-and the view `_ranked` (`ci_mails/README.md`). Without them the job scores with the reasons built into
-`surveillance.py` and puts no emailed articles on the page.
+The job and the app hold no data of their own. Everything they work from is a row in a table:
+
+| Table | Holds | Changed by |
+|---|---|---|
+| `_settings` | search terms, sources, Scholar pages, L3 priority keywords | the app's Settings dialog |
+| `_rules` | exclusion rules; disease, study-type, intent and keyword tagging; sponsors; the reasons offered when accepting or ignoring; the priority bands | SQL (see *Day to day*) |
+| `_intents` | the L3 reasons and push-down rules that score articles | SQL |
+| `_ci_articles` | articles sent in Articles of Interest emails | `ci_mails/build_tables.py` |
+| `_decisions` | reviewer decisions | the app |
+| `_articles`, `_runs` | the article store and the run log | the job |
+
+The job stops with a clear message, rather than guessing, when `_settings`, `_rules` or `_intents` has no usable rows.
+
+Also required: `ci_mails/intents.sql` creates `literature_surveillance_intents` (the L3 reasons) and `_ci_articles`
+(the articles the emails sent) and the view `_ranked`; `ci_mails/build_tables.py` fills `_ci_articles` and the
+evidence columns of `_intents` (`ci_mails/README.md`). The rows of `_rules` and `_intents` are the rules: the job has
+no built-in copy. A new deployment needs them filled before the first run; the rows in
+`tests/fixture_config.json` are a snapshot to start from.
 
 ---
 
@@ -149,9 +153,9 @@ and give you WRITE on it.
 
 ## Step 5 – Nothing to do
 
-Earlier versions kept data in files; the tables are now the only place data lives, so there is nothing to
-copy. The first job run saves the terms in `terms.csv` as the first settings; from then on the settings
-table is where terms are kept.
+Earlier versions kept data in files (`terms.csv`, `exclusions.csv`, `data/`); the tables are now the only place
+data lives. Before the first run, `_settings` needs one row (save the Settings dialog in the app, or insert a row)
+and `_rules` and `_intents` need their rows (Step 3).
 
 ---
 
@@ -224,7 +228,7 @@ Accepted feed, and `SELECT * FROM medical_prod.apps.literature_surveillance_deci
 
 Viewers don't need access to the tables or the SQL warehouse. The app uses them with its own identity (a
 "service principal" that Databricks created for the app), which `databricks.yml` gives read access to the
-articles and runs tables and read/write access to the decisions and settings tables.
+articles, runs and rules tables and read/write access to the decisions and settings tables.
 
 ---
 
@@ -233,11 +237,11 @@ articles and runs tables and read/write access to the decisions and settings tab
 | You want to… | Do this |
 |---|---|
 | See if today's run worked | Jobs & Pipelines → the job → Runs. Failed runs also email `notify_email`. |
-| Change search terms, sources or priority keywords | in the app: **Settings** (top right) → **Sources**, **L1 keywords** or **L3 priority keywords** → Save. The next run uses them; to apply now, `databricks bundle run lit_surv_daily`. Each Save adds a row to the settings table, so it is also the history of changes. To start again from `terms.csv`, empty that table (`DELETE FROM medical_prod.apps.literature_surveillance_settings`); the next run saves `terms.csv` as the first settings again. |
-| Change an L3 reason or push-down rule (its points, keywords, or switch it off) | in the SQL editor, e.g. `UPDATE medical_prod.apps.literature_surveillance_intents SET weight = 80 WHERE intent_id = 'seb_derm'` (or `SET active = false`). The next run scores with it and Settings → L3 lists it. To start again from the list in `surveillance.py` (`L3_INTENTS`, `L3_PUSH_DOWN`), run `ci_mails/build_tables.py` |
+| Change search terms, sources or priority keywords | in the app: **Settings** (top right) → **Sources**, **L1 keywords** or **L3 priority keywords** → Save. The next run uses them; to apply now, `databricks bundle run lit_surv_daily`. Each Save adds a row to the settings table, so it is also the history of changes. |
+| Change an L3 reason or push-down rule (its points, keywords, or switch it off) | in the SQL editor, e.g. `UPDATE medical_prod.apps.literature_surveillance_intents SET weight = 80 WHERE intent_id = 'seb_derm'` (or `SET active = false`). The next run scores with it and Settings → L3 lists it |
 | Add the articles of new Articles of Interest emails | save the emails as PDF to `/Volumes/medical_prod/apps/ci_mails`, then run the `ci_mails` steps (`ci_mails/README.md`); the next run puts them on the accepted feed |
 | See what each run searched and found | `SELECT * FROM medical_prod.apps.literature_surveillance_runs ORDER BY run_at DESC` |
-| Change exclusion rules | edit `exclusions.csv` → `databricks bundle deploy`. The next run uses them; to apply now, `databricks bundle run lit_surv_daily`. |
+| Change exclusion rules, disease / study-type / intent / keyword tagging, sponsors, priority bands, or the reasons offered when accepting or ignoring | in the SQL editor on `medical_prod.apps.literature_surveillance_rules`, e.g. `UPDATE … SET active = false WHERE kind = 'exclusion' AND name = 'Veterinary'`, or `INSERT` a row (`kind`, `name`, `pattern`, `applies_to`, …; the columns are described in `tables.sql`). The next run uses it; the app reads the page lists on every visit. To apply now, `databricks bundle run lit_surv_daily`. |
 | Change the code or the page template (`app/template.html`) | edit, run `python tests\test_offline.py`, then `databricks bundle deploy`, plus `databricks bundle run lit_surv_app` for the template |
 | Change the app | edit `app/` → `databricks bundle deploy` → `databricks bundle run lit_surv_app` |
 | Pause the daily run | job page → **Schedules & Triggers** → Pause (or set `pause_status: PAUSED` and deploy) |
@@ -271,7 +275,7 @@ running, whether or not anyone looks at it. Ask your admin what that costs in yo
 | Job output: `Google Scholar skipped: no SerpApi key` | the `serpapi-key` secret is missing or misspelled (Step 4) |
 | Job output: `PUBMED_API_KEY does not look like an NCBI key` | re-enter the `pubmed-api-key` secret (Step 4) |
 | Job output: `Google Scholar ERROR … run out of searches` | your SerpApi plan is used up; upgrade it, or switch Google Scholar off in the app (**Settings → Sources**) |
-| Job fails: `Table medical_prod.apps.literature_surveillance_… does not exist or you can't read it` | run `tables.sql` (Step 3). If it exists, you need SELECT and MODIFY on the four tables |
+| Job fails: `Table medical_prod.apps.literature_surveillance_… does not exist or you can't read it` | run `tables.sql` (Step 3). If it exists, you need SELECT and MODIFY on the tables |
 | Deploy says `CATALOG_DOES_NOT_EXIST` | the catalog or schema in `databricks.yml` doesn't exist. `databricks catalogs list` shows the catalogs you have; use the same names in `app/app.yaml` |
 | App page says **The database is starting up** | the SQL warehouse was stopped and took over two minutes to start; reload. If it happens often, raise the warehouse's auto-stop time (SQL Warehouses → the warehouse → Edit) |
 | App page says **The Literature Surveillance could not be loaded** | a query failed; its message is under *Technical detail*. Often a permission (rows below) or a table renamed in `app/app.yaml` |
