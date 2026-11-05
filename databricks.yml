@@ -1,4 +1,4 @@
-# Databricks Asset Bundle: the daily surveillance job and the review app. Setup steps: DEPLOY.md.
+# Databricks Asset Bundle: the daily surveillance job. The review app is deployed from GitHub (Compute > Apps), not from this bundle. Setup steps: DEPLOY.md.
 # Change the values marked EDIT, then run:  databricks bundle deploy
 bundle:
   name: lit-surv
@@ -60,52 +60,6 @@ resources:
             environment_version: "2"
             dependencies:
               - requests
-
-  apps:
-    lit_surv_app:
-      name: literature-surveillance                  # must match the app that already exists in the workspace
-      description: Literature Surveillance review page
-      source_code_path: ./app
-      resources:                                       # what the app's service principal may use
-        - name: sql-warehouse                          # runs the app's SQL; app.yaml passes its id to the app
-          sql_warehouse:
-            id: ${var.warehouse_id}
-            permission: CAN_USE
-        - name: articles-read                          # the page is built from the articles and the last run
-          uc_securable:
-            securable_full_name: ${var.catalog}.${var.schema}.${var.table_prefix}_articles
-            securable_type: TABLE
-            permission: SELECT
-        - name: runs-read
-          uc_securable:
-            securable_full_name: ${var.catalog}.${var.schema}.${var.table_prefix}_runs
-            securable_type: TABLE
-            permission: SELECT
-        - name: decisions-read
-          uc_securable:
-            securable_full_name: ${var.catalog}.${var.schema}.${var.table_prefix}_decisions
-            securable_type: TABLE
-            permission: SELECT
-        - name: decisions-write
-          uc_securable:
-            securable_full_name: ${var.catalog}.${var.schema}.${var.table_prefix}_decisions
-            securable_type: TABLE
-            permission: MODIFY
-        - name: settings-read
-          uc_securable:
-            securable_full_name: ${var.catalog}.${var.schema}.${var.table_prefix}_settings
-            securable_type: TABLE
-            permission: SELECT
-        - name: rules-read                             # the lists the page offers: reasons, diseases, intents, priority bands
-          uc_securable:
-            securable_full_name: ${var.catalog}.${var.schema}.${var.table_prefix}_rules
-            securable_type: TABLE
-            permission: SELECT
-        - name: settings-write
-          uc_securable:
-            securable_full_name: ${var.catalog}.${var.schema}.${var.table_prefix}_settings
-            securable_type: TABLE
-            permission: MODIFY
 
 targets:
   prod:

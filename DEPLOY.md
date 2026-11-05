@@ -24,7 +24,7 @@ most of it waiting for access or keys.
 - The tables are the only place the data lives; no files are written. Being tables, they can also be
   queried in the SQL editor, dashboards or Genie, e.g. `SELECT * FROM medical_prod.apps.literature_surveillance_decisions`.
 - One file, `databricks.yml`, describes both. A single command (`databricks bundle deploy`) uploads the
-  code and creates or updates the job and the app.
+  code and creates or updates the job. The app is deployed from GitHub (see the note under Step 9).
 
 ---
 
@@ -186,7 +186,7 @@ databricks bundle deploy
 code to your workspace folder (`/Workspace/Users/<you>/.bundle/lit-surv/prod/files`) and creates:
 
 - the job **Literature surveillance (daily)** (under **Jobs & Pipelines** in the sidebar)
-- the app **literature-surveillance** (under **Compute → Apps**)
+- (the app **literature-surveillance** is no longer part of the bundle; it deploys from GitHub, see Step 9)
 
 ---
 
@@ -210,7 +210,7 @@ shows one row for this run, with the number of articles and how many are on the 
 ## Step 9 – Start the app
 
 ```powershell
-databricks bundle run lit_surv_app
+In Databricks: **Compute → Apps → literature-surveillance → Deploy**, source GitHub, source code path `app`. (The app is not in `databricks.yml`; a bundle deploy no longer touches it.)
 ```
 
 This deploys the app code and starts it. It takes a minute or two and prints the app URL. You can also
@@ -227,7 +227,7 @@ Accepted feed, and `SELECT * FROM medical_prod.apps.literature_surveillance_deci
 **Compute → Apps → literature-surveillance → Permissions** → add people or a group → **Can use**.
 
 Viewers don't need access to the tables or the SQL warehouse. The app uses them with its own identity (a
-"service principal" that Databricks created for the app), which `databricks.yml` gives read access to the
+"service principal" that Databricks created for the app), which was given read access to the
 articles, runs and rules tables and read/write access to the decisions and settings tables.
 
 ---
@@ -242,10 +242,10 @@ articles, runs and rules tables and read/write access to the decisions and setti
 | Add the articles of new Articles of Interest emails | save the emails as PDF to `/Volumes/medical_prod/apps/ci_mails`, then run the `ci_mails` steps (`ci_mails/README.md`); the next run puts them on the accepted feed |
 | See what each run searched and found | `SELECT * FROM medical_prod.apps.literature_surveillance_runs ORDER BY run_at DESC` |
 | Change exclusion rules, disease / study-type / intent / keyword tagging, sponsors, priority bands, or the reasons offered when accepting or ignoring | in the SQL editor on `medical_prod.apps.literature_surveillance_rules`, e.g. `UPDATE … SET active = false WHERE kind = 'exclusion' AND name = 'Veterinary'`, or `INSERT` a row (`kind`, `name`, `pattern`, `applies_to`, …; the columns are described in `tables.sql`). The next run uses it; the app reads the page lists on every visit. To apply now, `databricks bundle run lit_surv_daily`. |
-| Change the code or the page template (`app/template.html`) | edit, run `python tests\test_offline.py`, then `databricks bundle deploy`, plus `databricks bundle run lit_surv_app` for the template |
-| Change the app | edit `app/` → `databricks bundle deploy` → `databricks bundle run lit_surv_app` |
+| Change the code or the page template (`app/template.html`) | edit, run `python tests\test_offline.py`, push to GitHub, then redeploy the app in Databricks (**Compute → Apps → literature-surveillance → Deploy**). `databricks bundle deploy` is only for the job |
+| Change the app | edit `app/` → push to GitHub → redeploy in Databricks (**Compute → Apps → literature-surveillance → Deploy**, source code path `app`) |
 | Pause the daily run | job page → **Schedules & Triggers** → Pause (or set `pause_status: PAUSED` and deploy) |
-| Stop paying for the app while unused | `databricks apps stop literature-surveillance`; start again with `databricks bundle run lit_surv_app` |
+| Stop paying for the app while unused | `databricks apps stop literature-surveillance`; start again with `databricks apps start literature-surveillance` |
 
 ### Upgrading a deployment made before the L3 score (November 2026)
 
@@ -257,7 +257,7 @@ read articles and those sent in Articles of Interest emails go to the accepted f
    job still runs, but Settings → L3 cannot list the reasons.
 2. `cd ci_mails` and `python build_tables.py`: creates and fills `_intents` and `_ci_articles`.
 3. `databricks bundle deploy`, then `databricks bundle run lit_surv_daily` (rescores every article and adds the
-   emailed ones) and `databricks bundle run lit_surv_app`.
+   emailed ones) and redeploy the app in Databricks (**Compute → Apps → Deploy**).
 
 Decisions already saved keep working: a reviewer's decision always wins over the automatic ones.
 
