@@ -1,5 +1,0 @@
-rule_name,pattern,applies_to,note
-Transplant / haematology context,(?i)\b(GVHD|graft.versus.host|myelofibrosis|polycythemia|transplant)\b,title_abstract,Oral ruxolitinib / JAK literature
-COPD / respiratory,(?i)\b(COPD|pulmonary|asthma|bronch)\b,title,Oral roflumilast's respiratory literature
-Veterinary,(?i)\b(canine|feline|veterinary|dogs?|cats?)\b,title,Animal dermatology
-Oral JAK inhibitor (systemic),(?i)\boral (tofacitinib|upadacitinib|abrocitinib|baricitinib|ruxolitinib)\b,title,Systemic JAK use caught by the topical JAK term
