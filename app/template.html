@@ -43,6 +43,9 @@
   .feedtabs .tab[data-go="accepted"]{--t-bg:#eaf3ec;--t-bg2:#d9eadd;--t-line:#c9dfce;--t-ink:#2f6b3f}
   .feedtabs .tab[data-go="review"]{--t-bg:#e8f0f7;--t-bg2:#d6e5f2;--t-line:#c6d9ea;--t-ink:#2c5f8a}
   .feedtabs .tab[data-go="ignored"]{--t-bg:#efeeeb;--t-bg2:#e2e1dc;--t-line:#d8d6d0;--t-ink:#6b6a64}
+  .feedtabs .tab[data-go="bookmarked"]{--t-bg:#fbf1da;--t-bg2:#f6e4b8;--t-line:#ecd9a8;--t-ink:#8a5a0c}
+  .feedtabs .tab[data-go="bookmarked"] svg{width:14px;height:14px}
+  .feedtabs .tab[data-go="bookmarked"].active svg{fill:currentColor}
   .count{font-size:11px;font-weight:500;padding:1px 7px;border-radius:999px;background:#ececea;color:#5b5a55}
   .tab.active .count{background:var(--accent-bg);color:var(--accent)}
   .feedtabs{margin:0 0 14px;border-bottom:1px solid var(--line)}
@@ -103,9 +106,9 @@
   /* tables */
   .table{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
   .thead,.trow{display:grid;gap:12px;align-items:center;padding:11px 16px}
-  .feed .thead,.feed .trow{grid-template-columns:minmax(0,1fr) 92px 120px 132px 104px 116px 84px 60px 72px;gap:10px}
+  .feed .thead,.feed .trow{grid-template-columns:minmax(0,1fr) 92px 120px 132px 104px 116px 84px 60px 116px;gap:10px}
   .cell.safety{color:var(--warn);font-weight:500}
-  .out .thead,.out .trow{grid-template-columns:minmax(0,1fr) 92px 140px 140px 260px 84px}
+  .out .thead,.out .trow{grid-template-columns:minmax(0,1fr) 92px 140px 140px 260px 132px}
   .sorth{cursor:pointer;user-select:none;white-space:nowrap}
   .sorth:hover{color:var(--ink)}
   .sorth .arr{margin-left:4px;color:var(--accent)}
@@ -142,6 +145,19 @@
   .icon.ok:hover,.trow:hover .icon.ok:hover{color:var(--accent);border-color:#b9d9d6;background:var(--accent-bg)}
   .icon.no:hover,.trow:hover .icon.no:hover{color:var(--warn)}
   .icon svg{width:16px;height:16px}
+  /* round action buttons: a ring and a tint in the colour of the feed they send the article to (same colours as the tabs) */
+  .icon.rnd{border-radius:50%;border:1.5px solid var(--t-ink);background:var(--t-bg);color:var(--t-ink)}
+  .icon.rnd:hover,.trow:hover .icon.rnd,.trow:hover .icon.rnd:hover{border-color:var(--t-ink);background:var(--t-bg2);color:var(--t-ink)}
+  .icon.rnd:focus-visible{outline:2px solid var(--t-ink);outline-offset:2px}
+  .icon.rnd[data-to="accepted"]{--t-bg:#eaf3ec;--t-bg2:#d9eadd;--t-ink:#2f6b3f}
+  .icon.rnd[data-to="review"]{--t-bg:#e8f0f7;--t-bg2:#d6e5f2;--t-ink:#2c5f8a}
+  .icon.rnd[data-to="ignored"]{--t-bg:#efeeeb;--t-bg2:#e2e1dc;--t-ink:#6b6a64}
+  .icon.rnd.bm{--t-bg:#fbf1da;--t-bg2:#f6e4b8;--t-ink:#8a5a0c}
+  .icon.rnd.bm.on,.trow:hover .icon.rnd.bm.on{background:var(--t-ink);color:#fff}
+  .icon.rnd.bm.on svg{fill:currentColor}
+  .btn.bm.on{background:#fbf1da;border-color:#8a5a0c;color:#8a5a0c}
+  .btn.bm svg{width:13px;height:13px;vertical-align:-2px;margin-right:5px}
+  .btn.bm.on svg{fill:currentColor}
   .empty{padding:36px;text-align:center;color:var(--mute)}
   .foot{margin-top:12px;font-size:12px;color:var(--mute)}
   .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:#1f1f1c;color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:all .2s;display:flex;gap:14px;align-items:center;z-index:20}
@@ -274,7 +290,7 @@
 
   @media (max-width:960px){
     .two{flex-direction:column}.side{width:100%}
-    .feed .thead,.feed .trow,.out .thead,.out .trow{grid-template-columns:minmax(0,1fr) 76px}
+    .feed .thead,.feed .trow,.out .thead,.out .trow{grid-template-columns:minmax(0,1fr) 116px}
     .feed .thead div:nth-child(n+2):not(:last-child),.feed .trow>div:nth-child(n+2):not(:last-child),
     .out .thead div:nth-child(n+2):not(:last-child),.out .trow>div:nth-child(n+2):not(:last-child){display:none}
     .rules{grid-template-columns:1fr}.topin,.wrap{padding-left:16px;padding-right:16px}
@@ -338,6 +354,7 @@
     <button class="tab" data-go="accepted">Accepted feed <span class="count" id="c-accepted">0</span></button>
     <button class="tab active" data-go="review">Review feed <span class="count" id="c-review">0</span></button>
     <button class="tab" data-go="ignored">Ignored feed <span class="count" id="c-ignored">0</span></button>
+    <button class="tab" data-go="bookmarked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>Bookmarked <span class="count" id="c-bookmarked">0</span></button>
   </div>
 
   <!-- Accepted feed -->
@@ -377,6 +394,16 @@
         <div class="rule"><b>Term only in full text (Google Scholar)</b><span>Scholar-only hit whose search term is not in the title or abstract</span></div>
       </div>
     </div>
+  </section>
+
+  <!-- Bookmarked: the articles this viewer bookmarked, from any feed -->
+  <section class="screen" id="bookmarked">
+    <div class="sumbar"><div class="summary" id="sum-bookmarked"></div><div class="tools"><label for="sort-bookmarked">Sort</label><select class="sortsel" id="sort-bookmarked"></select><button class="btn small exportBtn" title="Copy an email digest or download a spreadsheet of this list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Export</button></div></div>
+    <div class="table feed">
+      <div class="thead"><div>Article</div><div class="sorth" data-sort="published" role="button" tabindex="0" title="Sort by publication date">Published<span class="arr"></span></div><div>Source</div><div>Matched term</div><div>Disease</div><div>Intent</div><div>Access</div><div>Priority</div><div></div></div>
+      <div id="rows-bookmarked"></div>
+    </div>
+    <div class="foot">Your bookmarks, from any feed; only you see them. Use the bookmark button on a row or on an article page to add or remove one. Ignored articles are listed here too, with a button to restore them.</div>
   </section>
 
   <!-- Article detail -->
@@ -587,6 +614,7 @@
       <h3>Finding and sharing</h3>
       <ul>
         <li>Filters and search apply to all three feeds. <b>Sort</b> by priority, publication date or when the article was found; click the Published heading to flip the date order. <span class="new">New</span> marks articles found in the last 7 days.</li>
+        <li><b>Bookmark</b> (the ribbon on a row or an article page) keeps an article in your own Bookmarked tab, whichever feed it is on. Bookmarks are private to you.</li>
         <li><b>Copy link</b> on an article page links straight to that article.</li>
         <li><b>Export</b> copies the filtered list as an email digest or downloads it as a spreadsheet. For a weekly email, open the Accepted feed, pick Published: Last 30 days or Added: Last 7 days, then Export.</li>
       </ul>
@@ -635,9 +663,9 @@ const prioTitle = a => [`${a.score} points`, ...a.l3i.map(h => `+${h.points} ${h
 const BY_REVIEWER = 'Ignored by reviewer';
 const RULE_CLASS = { 'Duplicate': 'p-grey', 'Off-target': 'p-off', [BY_REVIEWER]: 'p-grey' };
 const SOURCES = ['PubMed', 'OpenAlex', 'Google Scholar', 'Email'];   // Email: cited in an Articles of Interest email, not found by the search
-const FEEDS = { accepted: 'Accepted feed', review: 'Review feed', ignored: 'Ignored feed' };
-const NOUN = { accepted: 'accepted articles', review: 'articles to review', ignored: 'ignored articles' };
-const EMPTY = { accepted: 'Nothing accepted yet. Accept articles from the review feed; Must read articles and those sent in an Articles of Interest email are accepted automatically.', review: 'Nothing left to review.', ignored: 'Nothing has been ignored.' };
+const FEEDS = { accepted: 'Accepted feed', review: 'Review feed', ignored: 'Ignored feed', bookmarked: 'Bookmarked articles' };
+const NOUN = { accepted: 'accepted articles', review: 'articles to review', ignored: 'ignored articles', bookmarked: 'bookmarked articles' };
+const EMPTY = { bookmarked: 'No bookmarks yet. Use the bookmark button on a row or an article page to keep an article here.', accepted:'Nothing accepted yet. Accept articles from the review feed; Must read articles and those sent in an Articles of Interest email are accepted automatically.', review: 'Nothing left to review.', ignored: 'Nothing has been ignored.' };
 const MOVED = { accepted: 'Accepted', review: 'Moved back to the review feed', ignored: 'Ignored' };
 const DISEASES = CONFIG.diseases || [];
 const INTENTS = CONFIG.intents || [];
@@ -662,7 +690,7 @@ const articleKeywords = a => [...new Set([
 // reasons ticked in the current feed, most used first; a selected one stays listed after switching feeds
 function reasonValues() {
   const n = {};
-  DATA.filter(a => statusOf(a) === state.feed).forEach(a => a.reasons.forEach(r => n[r] = (n[r] || 0) + 1));
+  DATA.filter(a => inFeed(a, state.feed)).forEach(a => a.reasons.forEach(r => n[r] = (n[r] || 0) + 1));
   if (state.reason !== 'All') n[state.reason] = n[state.reason] || 0;
   return Object.keys(n).sort((x, y) => n[y] - n[x] || x.localeCompare(y));
 }
@@ -704,9 +732,12 @@ const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').re
 const dateCell = a => `<div class="cell" style="white-space:nowrap">${esc(fmtDay(a.pub_date)) || '—'}</div>`;
 const srcCell = a => `<div class="src"><b>${esc(a.src)}</b>${a.src === 'Google Scholar' ? `<span>via ${esc(a.via)}</span>` : ''}</div>`;
 const svg = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
-const ICON = { mail: svg('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>'), star: svg('<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z"/>'), accepted: svg('<path d="M20 6 9 17l-5-5"/>'), ignored: svg('<path d="M18 6 6 18M6 6l12 12"/>'), review: svg('<path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/>') };
+const ICON = { bookmark: svg('<path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>'), mail: svg('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>'), star: svg('<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z"/>'), accepted: svg('<path d="M20 6 9 17l-5-5"/>'), ignored: svg('<path d="M18 6 6 18M6 6l12 12"/>'), review: svg('<path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/>') };
 // row buttons per feed: [target feed, label, hover style]
-const ROW_ACTIONS = { review: [['accepted', 'Accept', 'ok'], ['ignored', 'Ignore', 'no']], accepted: [['review', 'Move back to review', ''], ['ignored', 'Ignore', 'no']] };
+const ROW_ACTIONS = { review: [['accepted', 'Accept'], ['ignored', 'Ignore']], accepted: [['review', 'Move back to review'], ['ignored', 'Ignore']],
+                       ignored: [['review', 'Restore to review feed'], ['accepted', 'Accept']] };   // ignored: only in the bookmarked list
+// the round bookmark button of a row; `on` fills it
+const bmButton = a => `<button class="icon rnd bm${a.bookmarked ? ' on' : ''}" data-bm title="${a.bookmarked ? 'Remove bookmark' : 'Bookmark'}" aria-label="${a.bookmarked ? 'Remove bookmark' : 'Bookmark'}" aria-pressed="${!!a.bookmarked}">${ICON.bookmark}</button>`;
 const DETAIL_ACTIONS = { review: [['accepted', 'Accept'], ['ignored', 'Ignore']], accepted: [['review', 'Move back to review'], ['ignored', 'Ignore']], ignored: [['review', 'Restore to review feed'], ['accepted', 'Accept']] };
 
 function normDecision(d) { return d === 'removed' ? 'ignored' : (d || null); }   // 'removed' is the older name for 'ignored'
@@ -718,6 +749,8 @@ function statusOf(a) {
   if (a.decision === 'restored') return 'review';
   return a.auto ? 'accepted' : a.rule ? 'ignored' : 'review';
 }
+// is article a listed in this feed? Bookmarked is not a status: it lists the viewer's bookmarks from every feed
+const inFeed = (a, feed) => feed === 'bookmarked' ? !!a.bookmarked : statusOf(a) === feed;
 // the smallest decision that puts an article on a feed, so an article left alone carries no decision
 function decisionFor(a, feed) {
   if (feed === 'accepted') return a.auto ? null : 'accepted';
@@ -738,12 +771,12 @@ function matches(a, skip) {
 
 // one row of chips per facet; each count is what that chip would show in the current feed, given the other filters
 function renderFilters() {
-  const inFeed = DATA.filter(a => statusOf(a) === state.feed), el = document.getElementById('facets');
+  const inList = DATA.filter(a => inFeed(a, state.feed)), el = document.getElementById('facets');
   el.innerHTML = '';
   FACETS.forEach(f => {
     const values = f.values();
     if (!values.length) return;
-    const pool = inFeed.filter(a => matches(a, f.key));
+    const pool = inList.filter(a => matches(a, f.key));
     const row = document.createElement('div'); row.className = 'frow';
     row.innerHTML = `<div class="flabel" id="fl-${f.key}">${f.label}</div><div class="chips" role="group" aria-labelledby="fl-${f.key}"></div>`;
     ['All', ...values].forEach(v => {
@@ -798,30 +831,32 @@ const decidedLine = a => a.decision && a.decided ?
   `${DECIDED_VERB[a.decision] || 'Decided'} by ${a.decided.by || 'a reviewer'}${a.decided.at ? ' on ' + fmtDay(a.decided.at) : ''}` : '';
 const newBadge = a => isNew(a) ? `<span class="new" title="Found in the last 7 days (first seen ${esc(fmtDay(a.first_seen))})">New</span>` : '';
 
-function feedRow(a, feed) {
+function feedRow(a, feed, from = feed) {   // feed: the buttons and notes it gets; from: the list it is shown in
   const r = document.createElement('div'); r.className = 'trow';
   const why = a.reasons.join(' · '), auto = feed === 'accepted' && !a.decision && a.auto, by = decidedLine(a);
-  r.innerHTML = `<div style="min-width:0"><button class="ttl" title="${esc(a.title)}">${esc(a.title)}</button><div class="meta">${newBadge(a)}${esc(a.meta)}</div>${why ? `<div class="rsn" title="${esc(by || 'Accepted')} because: ${esc(why)}">${ICON.accepted}<span>${esc(why)}</span></div>` : auto ? `<div class="rsn auto" title="Accepted automatically: ${esc(a.auto)}">${autoIcon(a)}<span>${esc(a.auto)}</span></div>` : ''}</div>
+  r.innerHTML = `<div style="min-width:0"><button class="ttl" title="${esc(a.title)}">${esc(a.title)}</button><div class="meta">${newBadge(a)}${esc(a.meta)}</div>${why ? `<div class="rsn" title="${esc(by || DECIDED_VERB[a.decision] || 'Decided')} because: ${esc(why)}">${a.decision === 'ignored' ? ICON.ignored : ICON.accepted}<span>${esc(why)}</span></div>` : auto ? `<div class="rsn auto" title="Accepted automatically: ${esc(a.auto)}">${autoIcon(a)}<span>${esc(a.auto)}</span></div>` : ''}</div>
     ${dateCell(a)}${srcCell(a)}
     <div class="cell">${esc(a.term)}</div><div class="cell">${esc(a.dz.join(', '))}</div>
     <div class="cell${a.intent === 'Safety' ? ' safety' : ''}" title="${esc(a.intent_why)}">${esc(a.intent)}</div>
     <div><span class="pill ${ACCESS[a.access]}">${esc(a.access)}</span></div>
     <div class="prio" style="color:${PRIO[a.prio] || 'inherit'}" title="${esc(prioTitle(a))}">${esc(a.prio)}${a.l3.length ? `<span class="l3" role="img" aria-label="L3 keyword: ${esc(a.l3.join(', '))}" title="L3 keyword: ${esc(a.l3.join(', '))}">${svg('<path d="m5 12 7-7 7 7M12 19V5"/>')}</span>` : ''}<small>${a.score} points</small></div>
-    <div class="acts">${ROW_ACTIONS[feed].map(([to, label, cls]) => `<button class="icon ${cls}" data-to="${to}" title="${label}" aria-label="${label}">${ICON[to]}</button>`).join('')}</div>`;
-  r.querySelector('button.ttl').onclick = () => showDetail(a, feed);
+    <div class="acts">${bmButton(a)}${ROW_ACTIONS[feed].map(([to, label]) => `<button class="icon rnd" data-to="${to}" title="${label}" aria-label="${label}">${ICON[to]}</button>`).join('')}</div>`;
+  r.querySelector('button.ttl').onclick = () => showDetail(a, from);
   r.querySelectorAll('[data-to]').forEach(b => b.onclick = () => decide(a, b.dataset.to));
+  r.querySelector('[data-bm]').onclick = () => toggleBookmark(a);
   return r;
 }
 
-function ignoredRow(a) {
+function ignoredRow(a, from = 'ignored') {
   const r = document.createElement('div'); r.className = 'trow';
   r.innerHTML = `<div style="min-width:0"><button class="ttl" title="${esc(a.title)}">${esc(a.title)}</button><div class="meta">${esc(a.meta)}</div></div>
     ${dateCell(a)}${srcCell(a)}
     <div class="cell">${esc(a.term)}</div>
     <div style="display:flex;align-items:center;gap:8px;min-width:0" title="${esc([decidedLine(a), reasonNote(a)].filter(Boolean).join(': '))}"><span class="pill ${RULE_CLASS[reason(a)] || 'p-grey'}">${esc(reason(a))}</span><span class="cell" style="color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(reasonNote(a))}</span></div>
-    <button class="btn small">Restore</button>`;
-  r.querySelector('button.ttl').onclick = () => showDetail(a, 'ignored');
+    <div class="acts" style="align-items:center">${bmButton(a)}<button class="btn small">Restore</button></div>`;
+  r.querySelector('button.ttl').onclick = () => showDetail(a, from);
   r.querySelector('button.btn').onclick = () => decide(a, 'review');
+  r.querySelector('[data-bm]').onclick = () => toggleBookmark(a);
   return r;
 }
 
@@ -829,7 +864,9 @@ function ignoredRow(a) {
 function feedSummary(feed, all, rows) {
   const n = (xs, f) => xs.filter(f).length, parts = [];
   parts.push(rows.length === all.length ? `${all.length} ${NOUN[feed]}` : `Showing ${rows.length} of ${all.length} ${NOUN[feed]}`);
-  if (feed === 'ignored') {
+  if (feed === 'bookmarked') {
+    parts.push(['accepted', 'review', 'ignored'].map(s => [s, n(all, a => statusOf(a) === s)]).filter(([, k]) => k).map(([s, k]) => `${k} ${s === 'review' ? 'to review' : s}`).join(', '));
+  } else if (feed === 'ignored') {
     const byReviewer = n(all, a => reason(a) === BY_REVIEWER);
     parts.push(`${all.length - byReviewer} by exclusion rules, ${byReviewer} by a reviewer`);
   } else {
@@ -853,13 +890,13 @@ function bandRow(band, count, feed, folded) {
 }
 
 function renderList(feed) {
-  const all = DATA.filter(a => statusOf(a) === feed), rows = sortRows(all.filter(a => matches(a)));
+  const all = DATA.filter(a => inFeed(a, feed)), rows = sortRows(all.filter(a => matches(a)));
   document.getElementById('sum-' + feed).textContent = feedSummary(feed, all, rows);
   const el = document.getElementById('rows-' + feed);
   el.innerHTML = rows.length ? '' : `<div class="empty">${all.length ? 'No articles match these filters.' : EMPTY[feed]}</div>`;
   // sorted by priority, the feed is grouped by band; in the review feed the Low band is folded away unless it is all
   // there is, or the Priority filter or a search asks for it
-  const grouped = state.sort === 'priority' && feed !== 'ignored';
+  const grouped = state.sort === 'priority' && feed !== 'ignored' && feed !== 'bookmarked';
   const counts = {};
   rows.forEach(a => counts[a.prio] = (counts[a.prio] || 0) + 1);
   const foldLow = feed === 'review' && grouped && !state.showLow && state.prio === 'All' && !state.q.trim() && counts.Low < rows.length;
@@ -877,7 +914,8 @@ function renderList(feed) {
         break;
       }
     }
-    frag.appendChild(feed === 'ignored' ? ignoredRow(a) : feedRow(a, feed));
+    const st = feed === 'bookmarked' ? statusOf(a) : feed;   // a bookmark is shown as the feed its article is on
+    frag.appendChild(feed === 'ignored' ? ignoredRow(a) : feedRow(a, st, feed));   // the bookmarked table has the feed columns, so an ignored bookmark gets a feed row too
   }
   el.appendChild(frag);
   document.getElementById('c-' + feed).textContent = all.length;
@@ -927,6 +965,31 @@ Object.entries(window.DECISIONS || {}).forEach(([id, decision]) => {
   const a = byId(id);
   if (a) { a.decision = normDecision(decision); a.reasons = (window.REASONS || {})[id] || []; a.decided = (window.DECIDED || {})[id] || null; }
 });
+
+// Bookmarks are the viewer's own: window.BOOKMARKS lists the article ids they bookmarked and window.BOOKMARKS_API saves a change.
+// Opened as a plain file, none is set and bookmarks last until the page is closed.
+(window.BOOKMARKS || []).forEach(id => { const a = byId(id); if (a) a.bookmarked = true; });
+function toggleBookmark(a) {
+  const on = !a.bookmarked;
+  const save = value => {
+    a.bookmarked = value;
+    renderAll(); refreshBookmarkBtn(a);
+    if (!window.BOOKMARKS_API) return;
+    fetch(window.BOOKMARKS_API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: a.id, bookmarked: value }) })
+      .then(r => r.json().catch(() => ({})).then(j => { if (!r.ok) throw new Error(j.error || r.status); }))
+      .catch(e => toast(`Could not save this bookmark (${e.message}); it will be lost when the page reloads`));
+  };
+  save(on);
+  toast(on ? 'Bookmarked' : 'Bookmark removed', () => save(!on));
+}
+// the Bookmark button on the article page, kept in step with the article
+function refreshBookmarkBtn(a) {
+  const b = document.querySelector('#dActions [data-bm]');
+  if (!b) return;
+  b.classList.toggle('on', !!a.bookmarked);
+  b.setAttribute('aria-pressed', !!a.bookmarked);
+  b.innerHTML = `${ICON.bookmark}${a.bookmarked ? 'Bookmarked' : 'Bookmark'}`;
+}
 
 // with reasons the decision is always stored, even where an exclusion rule would have ignored the article anyway
 function move(a, feed, reasons = []) {
@@ -1065,8 +1128,11 @@ function showDetail(a, from, fromRoute) {
   document.getElementById('dCite').innerHTML = `${esc(a.cite)} · <a href="${esc(a.link)}" target="_blank" rel="noopener">Open article</a>`;
   const act = document.getElementById('dActions');
   act.innerHTML = DETAIL_ACTIONS[feed].map(([to, label], i) => `<button class="btn small${i === 0 && to === 'accepted' ? ' primary' : ''}" data-to="${to}">${label}</button>`).join('') +
+    `<button class="btn small bm" data-bm title="Keep this article in your Bookmarked list"></button>` +
     '<button class="btn small" data-copy title="A link straight to this article, for colleagues who can open this app">Copy link</button>';
   act.querySelectorAll('[data-to]').forEach(b => b.onclick = () => decide(a, b.dataset.to, () => go(state.feed)));
+  act.querySelector('[data-bm]').onclick = () => toggleBookmark(a);
+  refreshBookmarkBtn(a);
   act.querySelector('[data-copy]').onclick = () => copyText(location.href.split('#')[0] + hashOf('article/' + a.id),
     'Link copied: it opens this article for anyone who can open this app');
   renderReasons(a);
@@ -1491,7 +1557,7 @@ function copyText(text, done, html, shown) {
 }
 
 // the articles of the feed on screen, filtered as on screen (folded Low articles included)
-const listed = () => DATA.filter(a => statusOf(a) === state.feed && matches(a));
+const listed = () => DATA.filter(a => inFeed(a, state.feed) && matches(a));
 function scopeText(rows) {
   const on = FACETS.filter(f => state[f.key] !== 'All').map(f => `${f.label}: ${state[f.key]}`).concat(state.q.trim() ? [`search “${state.q.trim()}”`] : []);
   return `${rows.length} article${rows.length === 1 ? '' : 's'} from the ${FEEDS[state.feed].toLowerCase()}${on.length ? ' · ' + on.join(' · ') : ''}`;

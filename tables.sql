@@ -47,6 +47,14 @@ CREATE TABLE IF NOT EXISTS medical_prod.apps.literature_surveillance_decisions (
 COMMENT 'Literature surveillance: reviewer decisions saved by the app, one row per article that has one. Undo deletes the row.'
 TBLPROPERTIES ('delta.enableDeletionVectors' = 'true', 'delta.enableRowTracking' = 'true');  -- two reviewers saving at once don't conflict
 
+CREATE TABLE IF NOT EXISTS medical_prod.apps.literature_surveillance_bookmarks (
+  article_id    STRING NOT NULL COMMENT 'literature_surveillance_articles.id, or one of its aliases',
+  user_email    STRING NOT NULL COMMENT 'Viewer who bookmarked it; bookmarks are private to each viewer',
+  bookmarked_at TIMESTAMP
+)
+COMMENT 'Literature surveillance: articles bookmarked in the app, one row per viewer and article. Removing a bookmark deletes the row.'
+TBLPROPERTIES ('delta.enableDeletionVectors' = 'true', 'delta.enableRowTracking' = 'true');
+
 CREATE TABLE IF NOT EXISTS medical_prod.apps.literature_surveillance_settings (
   updated_at        TIMESTAMP NOT NULL,
   updated_by        STRING,

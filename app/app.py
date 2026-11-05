@@ -31,7 +31,8 @@ TABLES = os.environ.get("LITSURV_TABLES", "medical_prod.apps.literature_surveill
 WAREHOUSE_ID = os.environ.get("DATABRICKS_WAREHOUSE_ID")   # app.yaml takes it from the app's sql-warehouse resource
 ARTICLES, RUNS = f"{TABLES}_articles", f"{TABLES}_runs"   # written by the daily job
 DECISIONS, SETTINGS = f"{TABLES}_decisions", f"{TABLES}_settings"   # written here; surveillance.py reads both
-RULES = f"{TABLES}_rules"                              # read here for the page's lists; maintained in SQL, read by the job
+BOOKMARKS = f"{TABLES}_bookmarks"                      # written here: one row per viewer and bookmarked article
+RULES = f"{TABLES}_rules"                             # read here for the page's lists; maintained in SQL, read by the job
 DECISION_VALUES = ("accepted", "ignored", "restored", "removed", "")   # 'removed' is the older name for 'ignored'
 TERM_FIELDS = ["term", "product_category", "pubmed_query", "openalex_query", "scholar_query"]
 TERMS_TYPE = "ARRAY<STRUCT<" + ", ".join(f"{k}: STRING" for k in TERM_FIELDS) + ">>"
@@ -40,7 +41,7 @@ SOURCES = ("pubmed", "openalex", "scholar")
 
 app = Flask(__name__)
 w = WorkspaceClient()
-pool = ThreadPoolExecutor(5)                           # the page's five queries run side by side
+pool = ThreadPoolExecutor(6)                           # the page's six queries run side by side
 with open(TEMPLATE, encoding="utf-8") as f:
     template = f.read()
 
@@ -92,6 +93,18 @@ def read_decisions() -> dict:
     rows = sql(f"""SELECT article_id, decision, to_json(reasons), decided_by, date_format(decided_at, "yyyy-MM-dd'T'HH:mm:ssXXX")
                    FROM {DECISIONS}""")
     return {k: (d, json.loads(r) if r else [], by or "", at or "") for k, d, r, by, at in rows}
+
+
+def read_bookmarks(user: str) -> set[str]:
+    """The ids of the articles this viewer bookmarked. Bookmarks are private to the viewer. The page still loads, without
+    bookmarks, if the bookmarks table has not been created yet (tables.sql)."""
+    if not user:
+        return set()
+    try:
+        return {r[0] for r in sql(f"SELECT article_id FROM {BOOKMARKS} WHERE user_email = :user", user=user)}
+    except Exception:
+        logging.exception("could not read %s", BOOKMARKS)
+        return set()
 
 
 def read_settings() -> dict | None:
@@ -210,15 +223,18 @@ def failed(e):
 
 @app.get("/")
 def page():
-    run, articles, decisions, saved, config = (f.result() for f in [pool.submit(read_last_run), pool.submit(read_page_articles),
-                                                                    pool.submit(read_decisions), pool.submit(read_settings),
-                                                                    pool.submit(read_config)])
+    me = viewer()   # read here: request context is not available in the pool's threads
+    run, articles, decisions, saved, config, bookmarks = (f.result() for f in [
+        pool.submit(read_last_run), pool.submit(read_page_articles), pool.submit(read_decisions), pool.submit(read_settings),
+        pool.submit(read_config), pool.submit(read_bookmarks, me)])
     if run is None:
         return message_page("No articles yet", f"The daily job has not run since {RUNS} was created. Run it once "
                             "(Jobs & Pipelines → Literature surveillance (daily) → Run now) and reload.", status=503)
     hook = {"DECISIONS_API": "api/decisions", "DECISIONS": {}, "REASONS": {}, "DECIDED": {}, "SETTINGS_API": "api/settings",
-            "ME": viewer(), "CONFIG": config}
+            "ME": me, "CONFIG": config, "BOOKMARKS_API": "api/bookmarks", "BOOKMARKS": []}
     for key, aliases, _ in articles:                  # a decision stays with an article whose id changed, as in decision_for()
+        if bookmarks.intersection((key, *aliases)):   # so does a bookmark
+            hook["BOOKMARKS"].append(key)
         decision, reasons, by, at = next((decisions[k] for k in (key, *aliases) if k in decisions), (None, [], "", ""))
         if decision:
             hook["DECISIONS"][key] = decision
@@ -295,6 +311,24 @@ def save_decision():
     else:                                              # undo back to "no decision"
         sql(f"DELETE FROM {DECISIONS} WHERE article_id = :id", id=article)
     return jsonify(ok=True, by=viewer(), at=datetime.now(timezone.utc).isoformat(timespec="seconds"))
+
+
+@app.post("/api/bookmarks")
+def save_bookmark():
+    body = request.get_json(silent=True) or {}
+    article, on = str(body.get("id") or ""), body.get("bookmarked")
+    if not article or not isinstance(on, bool):
+        return jsonify(error="expected {id, bookmarked: true | false}"), 400
+    if not viewer():
+        return jsonify(error="bookmarks need a signed-in viewer"), 400
+    if on:
+        sql(f"""MERGE INTO {BOOKMARKS} t USING (SELECT :id AS article_id, :user AS user_email) s
+                ON t.article_id = s.article_id AND t.user_email = s.user_email
+                WHEN NOT MATCHED THEN INSERT (article_id, user_email, bookmarked_at) VALUES (:id, :user, current_timestamp())""",
+            id=article, user=viewer())
+    else:
+        sql(f"DELETE FROM {BOOKMARKS} WHERE article_id = :id AND user_email = :user", id=article, user=viewer())
+    return jsonify(ok=True)
 
 
 @app.post("/api/settings")
