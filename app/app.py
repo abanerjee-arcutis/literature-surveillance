@@ -231,7 +231,8 @@ def page():
         return message_page("No articles yet", f"The daily job has not run since {RUNS} was created. Run it once "
                             "(Jobs & Pipelines → Literature surveillance (daily) → Run now) and reload.", status=503)
     hook = {"DECISIONS_API": "api/decisions", "DECISIONS": {}, "REASONS": {}, "DECIDED": {}, "SETTINGS_API": "api/settings",
-            "ME": me, "CONFIG": config, "BOOKMARKS_API": "api/bookmarks", "BOOKMARKS": []}
+            "ME": me, "CONFIG": config, "BOOKMARKS_API": "api/bookmarks", "BOOKMARKS": [],
+            "ABSTRACTS_API": "api/abstracts"}
     for key, aliases, _ in articles:                  # a decision stays with an article whose id changed, as in decision_for()
         if bookmarks.intersection((key, *aliases)):   # so does a bookmark
             hook["BOOKMARKS"].append(key)
@@ -288,6 +289,26 @@ def rss():
 @app.get("/healthz")
 def health():
     return jsonify(ok=True)
+
+
+@app.get("/api/abstracts")
+def read_abstracts():
+    """{abstracts: {article id: {text, sections: [[label, text]]} or null}} for the ids asked (?id=a&id=b, at most 50). The
+    page does not carry abstracts: it asks for them after it loads, for the articles of the feed that is open."""
+    ids = list(dict.fromkeys(request.args.getlist("id")))[:50]
+    out = {k: None for k in ids}
+    if ids:
+        rows = sql(f"""SELECT id, abstract, get_json_object(record, '$.sections') FROM {ARTICLES}
+                       WHERE id IN ({", ".join(f":i{n}" for n in range(len(ids)))})""",
+                   **{f"i{n}": k for n, k in enumerate(ids)})
+        for k, text, sections in rows:
+            try:
+                sections = [[str(s[0] or ""), str(s[1] or "")] for s in json.loads(sections or "[]") if len(s) == 2 and s[1]]
+            except (ValueError, TypeError):
+                sections = []
+            if text or sections:
+                out[k] = dict(text=text or " ".join(t for _, t in sections), sections=sections)
+    return jsonify(abstracts=out)
 
 
 @app.post("/api/decisions")

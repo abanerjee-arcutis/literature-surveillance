@@ -195,7 +195,14 @@
   h1{margin:0;font-size:22px;font-weight:600;line-height:1.3}
   p{margin:0;line-height:1.55}
   ul{margin:12px 0 0;padding-left:20px;line-height:1.6}li{margin-bottom:6px}
-  .dactions{display:flex;gap:10px;margin-top:8px}
+  .dactions{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+  /* move buttons: text plus the colour of the feed they send the article to (same colours as the tabs) */
+  .btn.mv{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--t-ink);background:var(--t-bg);color:var(--t-ink)}
+  .btn.mv:hover{background:var(--t-bg2)}
+  .btn.mv svg{width:14px;height:14px}
+  .btn.mv[data-to="accepted"]{--t-bg:#eaf3ec;--t-bg2:#d9eadd;--t-ink:#2f6b3f}
+  .btn.mv[data-to="review"]{--t-bg:#e8f0f7;--t-bg2:#d6e5f2;--t-ink:#2c5f8a}
+  .btn.mv[data-to="ignored"]{--t-bg:#efeeeb;--t-bg2:#e2e1dc;--t-ink:#6b6a64}
   .dreasons{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:12px;font-size:13px}
   .dreasons .rl{color:var(--mute);margin-right:2px}
   .dreasons .link{font-size:13px;color:var(--accent);font-weight:500;margin-left:4px}
@@ -382,7 +389,7 @@
       <div class="thead"><div>Article</div><div class="sorth" data-sort="published" role="button" tabindex="0" title="Sort by publication date">Published<span class="arr"></span></div><div>Source</div><div>Matched term</div><div>Disease</div><div>Intent</div><div>Access</div><div class="thi">Priority<button class="info" aria-label="How priority is set" aria-controls="prioTip" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></button></div><div style="text-align:right">Actions</div></div>
       <div id="rows-review"></div>
     </div>
-    <div class="foot">Priority is a suggested reading order; the ⓘ beside the column name shows how it is set. Use the row buttons to accept an article (✓) or ignore it (✕); either one asks you to tick why.</div>
+    <div class="foot">Priority is a suggested reading order; the ⓘ beside the column name shows how it is set. Use the ⋮ menu on a row to accept or ignore an article; either one asks you to tick why.</div>
   </section>
 
   <!-- Ignored feed -->
@@ -392,7 +399,7 @@
       <div class="thead"><div>Article</div><div class="sorth" data-sort="published" role="button" tabindex="0" title="Sort by publication date">Published<span class="arr"></span></div><div>Source</div><div>Matched term</div><div>Reason</div><div style="text-align:right">Actions</div></div>
       <div id="rows-ignored"></div>
     </div>
-    <div class="foot">Articles filtered out by the exclusion rules or ignored by a reviewer. Nothing is deleted; restore an article to send it back to the review feed.</div>
+    <div class="foot">Articles filtered out by the exclusion rules or ignored by a reviewer. Nothing is deleted; use the ⋮ menu to restore an article to the review feed.</div>
     <div class="card" style="margin-top:24px">
       <div class="h2" style="font-size:14px">Automatic exclusion rules</div>
       <div class="h2s">Rules in exclusions.csv apply to every source; errata and retraction notices are ignored too. Examples:</div>
@@ -436,6 +443,10 @@
           <div class="lbl">Summary for the team</div>
           <p id="dSummary"></p>
           <ul id="dPoints"></ul>
+        </div>
+        <div class="card" id="dAbstractCard" hidden>
+          <div class="lbl">Abstract</div>
+          <div id="dAbstract"></div>
         </div>
         <div class="card">
           <div class="lbl">Why it matters / positioning</div>
@@ -618,7 +629,7 @@
         <li><b>Ignored feed</b>: articles a reviewer ignored, and those the exclusion rules filter out (transplant and blood-cancer context, COPD and asthma, veterinary studies, oral JAK inhibitors, errata and retractions). Nothing is deleted; <i>Restore</i> sends an article back for review.</li>
       </ul>
       <h3>Deciding</h3>
-      <p>✓ accepts an article and ✕ ignores it. Either asks you to tick why, so the team can later see what is being sent and why. Every decision is saved with your name and the time, and a reviewer's decision always overrides the automatic ones. The message at the bottom of the page undoes your last move.</p>
+      <p>The ⋮ menu on a row accepts or ignores an article. Either asks you to tick why, so the team can later see what is being sent and why. Every decision is saved with your name and the time, and a reviewer's decision always overrides the automatic ones. The message at the bottom of the page undoes your last move.</p>
       <h3>Finding and sharing</h3>
       <ul>
         <li>Filters and search apply to all three feeds. <b>Sort</b> by priority, publication date or when the article was found; click the Published heading to flip the date order. <span class="new">New</span> marks articles found in the last 7 days.</li>
@@ -798,7 +809,8 @@ const reasonNote = a => a.decision === 'ignored' || !a.rule ? (a.reasons.join(' 
 function matches(a, skip) {
   const q = state.q.trim().toLowerCase();
   return FACETS.every(f => f.key === skip || state[f.key] === 'All' || f.has(a, state[f.key]))
-    && (!q || [a.title, a.meta, a.via, a.term, a.intent, (a.dz || []).join(' '), a.summary, (a.points || []).join(' '), a.reasons.join(' ')].join(' ').toLowerCase().includes(q));
+    && (!q || [a.title, a.meta, a.via, a.term, a.intent, (a.dz || []).join(' '), a.summary, (a.points || []).join(' '), a.reasons.join(' ')].join(' ').toLowerCase().includes(q)
+      || !!(ABSTRACTS[a.id] && ABSTRACTS[a.id].low.includes(q)));
 }
 
 // one row of chips per facet; each count is what that chip would show in the current feed, given the other filters
@@ -872,8 +884,7 @@ function feedRow(a, feed, from = feed) {   // feed: the buttons and notes it get
     <div class="cell${a.intent === 'Safety' ? ' safety' : ''}" title="${esc(a.intent_why)}">${esc(a.intent)}</div>
     <div><span class="pill ${ACCESS[a.access]}">${esc(a.access)}</span></div>
     <div class="prio" style="color:${PRIO[a.prio] || 'inherit'}" title="${esc(prioTitle(a))}">${esc(a.prio)}${a.l3.length ? `<span class="l3" role="img" aria-label="L3 keyword: ${esc(a.l3.join(', '))}" title="L3 keyword: ${esc(a.l3.join(', '))}">${svg('<path d="m5 12 7-7 7 7M12 19V5"/>')}</span>` : ''}<small>${a.score} points</small></div>
-    <div class="acts">${feed === 'accepted' ? `<button class="icon" data-menu title="More actions" aria-label="More actions" aria-haspopup="menu">${ICON.dots}</button>`
-      : ROW_ACTIONS[feed].map(([to, label]) => `<button class="icon rnd" data-to="${to}" title="${label}" aria-label="${label}">${ICON[to]}</button>`).join('')}</div>`;
+    <div class="acts"><button class="icon" data-menu title="More actions" aria-label="More actions" aria-haspopup="menu">${ICON.dots}</button></div>`;
   r.querySelector('button.ttl').onclick = () => showDetail(a, from);
   r.querySelectorAll('[data-to]').forEach(b => b.onclick = () => decide(a, b.dataset.to));
   const mb = r.querySelector('[data-menu]');
@@ -888,9 +899,10 @@ function ignoredRow(a, from = 'ignored') {
     ${dateCell(a)}${srcCell(a)}
     <div class="cell">${esc(a.term)}</div>
     <div style="display:flex;align-items:center;gap:8px;min-width:0" title="${esc([decidedLine(a), reasonNote(a)].filter(Boolean).join(': '))}"><span class="pill ${RULE_CLASS[reason(a)] || 'p-grey'}">${esc(reason(a))}</span><span class="cell" style="color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(reasonNote(a))}</span></div>
-    <button class="btn small">Restore</button>`;
+    <div class="acts"><button class="icon" data-menu title="More actions" aria-label="More actions" aria-haspopup="menu">${ICON.dots}</button></div>`;
   r.querySelector('button.ttl').onclick = () => showDetail(a, from);
-  r.querySelector('button.btn').onclick = () => decide(a, 'review');
+  const mb = r.querySelector('[data-menu]');
+  mb.onclick = e => { e.stopPropagation(); openRowMenu(mb, ROW_ACTIONS.ignored.slice(0, 1), to => decide(a, to)); };
   r.querySelector('[data-bm]').onclick = () => toggleBookmark(a);
   return r;
 }
@@ -912,6 +924,7 @@ function feedSummary(feed, all, rows) {
       parts.push(BANDS.map(([, b]) => [b, n(all, a => a.prio === b)]).filter(([, k]) => k).map(([b, k]) => `${k} ${b}`).join(', '));
     }
   }
+  if (state.q.trim() && abstractsPending()) parts.push('still loading abstracts for the search');
   return parts.filter(Boolean).join(' · ');
 }
 
@@ -935,7 +948,7 @@ function renderList(feed) {
   const counts = {};
   rows.forEach(a => counts[a.prio] = (counts[a.prio] || 0) + 1);
   const foldLow = feed === 'review' && grouped && !state.showLow && state.prio === 'All' && !state.q.trim() && counts.Low < rows.length;
-  const frag = document.createDocumentFragment();
+  const frag = document.createDocumentFragment(), shown = [];
   let band = null;
   for (const a of rows) {
     if (grouped && a.prio !== band) {
@@ -951,7 +964,9 @@ function renderList(feed) {
     }
     const st = feed === 'bookmarked' ? statusOf(a) : feed;   // a bookmark is shown as the feed its article is on
     frag.appendChild(feed === 'ignored' ? ignoredRow(a) : feedRow(a, st, feed));   // the bookmarked table has the feed columns, so an ignored bookmark gets a feed row too
+    shown.push(a.id);
   }
+  shownIds[feed] = shown;
   el.appendChild(frag);
   document.getElementById('c-' + feed).textContent = all.length;
 }
@@ -981,6 +996,61 @@ function renderAll() {
   saveView();
   renderFilters();
   Object.keys(FEEDS).forEach(renderList);
+  queueAbstracts();
+}
+
+// Abstracts are not in the page. After the page has loaded, the app is asked for them a batch at a time, from the top of
+// the feed that is open (the rows on screen, in their order); changing tab or filter restarts from that feed's top.
+// An article opened before its abstract arrived asks for it at once.
+const ABSTRACTS = {}, abstractFailed = new Set(), shownIds = {};   // ABSTRACTS: id -> {text, sections}, or null when there is none
+let abstractQueue = [], abstractBusy = false, pageLoaded = document.readyState === 'complete', detailId = null;
+window.addEventListener('load', () => { pageLoaded = true; queueAbstracts(); });
+function queueAbstracts() {
+  if (!window.ABSTRACTS_API || !pageLoaded) return;
+  // the open feed first, from its top; then every other article, so the search can read all the abstracts
+  abstractQueue = [...new Set([...(shownIds[state.feed] || []), ...DATA.map(a => a.id)])].filter(id => !(id in ABSTRACTS) && !abstractFailed.has(id));
+  pumpAbstracts();
+}
+// is there an abstract the search cannot read yet
+const abstractsPending = () => !!window.ABSTRACTS_API && DATA.some(a => !(a.id in ABSTRACTS) && !abstractFailed.has(a.id));
+let abstractRefresh = null;
+async function pumpAbstracts() {
+  if (abstractBusy) return;
+  abstractBusy = true;
+  try { while (abstractQueue.length) await loadAbstracts(abstractQueue.splice(0, 50)); }
+  finally { abstractBusy = false; }
+}
+async function loadAbstracts(ids) {
+  ids = ids.filter(id => !(id in ABSTRACTS));
+  if (!ids.length) return;
+  try {
+    const r = await fetch(window.ABSTRACTS_API + '?' + ids.map(id => 'id=' + encodeURIComponent(id)).join('&'));
+    if (!r.ok) throw new Error(r.status);
+    const got = (await r.json()).abstracts || {};
+    ids.forEach(id => {
+      const x = got[id] || null;
+      if (x) x.low = x.text.toLowerCase();   // what the search reads
+      ABSTRACTS[id] = x; abstractFailed.delete(id);
+    });
+  } catch (e) {
+    ids.forEach(id => abstractFailed.add(id));
+  }
+  if (state.q.trim()) {   // a search is on: show what the new abstracts add
+    clearTimeout(abstractRefresh);
+    abstractRefresh = setTimeout(() => { renderFilters(); Object.keys(FEEDS).forEach(renderList); }, 300);
+  }
+  const open = detailId && byId(detailId);
+  if (open && ids.includes(detailId)) renderAbstract(open);
+}
+function renderAbstract(a) {
+  const card = document.getElementById('dAbstractCard'), el = document.getElementById('dAbstract');
+  card.hidden = !window.ABSTRACTS_API;
+  if (card.hidden) return;
+  const x = ABSTRACTS[a.id];
+  el.innerHTML = a.id in ABSTRACTS
+    ? !x ? '<p>No abstract is available for this record.</p>'
+      : x.sections.length ? x.sections.map(([l, t]) => `<p>${l ? `<b>${esc(l)}.</b> ` : ''}${esc(t)}</p>`).join('') : `<p>${esc(x.text)}</p>`
+    : abstractFailed.has(a.id) ? '<p>The abstract could not be loaded. Reload the page to try again.</p>' : '<p>Loading abstract…</p>';
 }
 
 // Served by the Databricks app, window.DECISIONS_API saves each choice and its reasons to the decisions table (the next run
@@ -1159,7 +1229,7 @@ function showDetail(a, from, fromRoute) {
   document.getElementById('dTitle').textContent = a.title;
   document.getElementById('dCite').innerHTML = `${esc(a.cite)} · <a href="${esc(a.link)}" target="_blank" rel="noopener">Open article</a>`;
   const act = document.getElementById('dActions');
-  act.innerHTML = DETAIL_ACTIONS[feed].map(([to, label], i) => `<button class="btn small${i === 0 && to === 'accepted' ? ' primary' : ''}" data-to="${to}">${label}</button>`).join('') +
+  act.innerHTML = DETAIL_ACTIONS[feed].map(([to]) => `<button class="btn small mv" data-to="${to}">${ICON[to]}Move to ${FEEDS[to]}</button>`).join('') +
     `<button class="btn small bm" data-bm title="Keep this article in your Bookmarked list"></button>` +
     '<button class="btn small" data-copy title="A link straight to this article, for colleagues who can open this app">Copy link</button>';
   act.querySelectorAll('[data-to]').forEach(b => b.onclick = () => decide(a, b.dataset.to, () => go(state.feed)));
@@ -1171,6 +1241,9 @@ function showDetail(a, from, fromRoute) {
   document.getElementById('dSummary').textContent = a.summary;
   document.getElementById('dPoints').innerHTML = a.points.map(p => `<li>${esc(p)}</li>`).join('');
   document.getElementById('dWhy').textContent = a.why;
+  detailId = a.id;
+  renderAbstract(a);
+  if (window.ABSTRACTS_API && !(a.id in ABSTRACTS)) loadAbstracts([a.id]);
   document.getElementById('dSrc').textContent = a.src;
   document.getElementById('dVia').textContent = a.via;
   document.getElementById('dTerm').textContent = a.term;
@@ -1205,6 +1278,7 @@ function go(id, fromRoute) {
   document.querySelectorAll('.feedtabs .tab').forEach(t => t.classList.toggle('active', t.dataset.go === state.feed));
   document.getElementById('toolbar').hidden = id === 'detail';
   window.scrollTo(0, back ? scrollPos[id] || 0 : 0);
+  if (FEEDS[id]) queueAbstracts();   // the feed now open is loaded from its top
 }
 // the address names the feed or article on screen (#review, #accepted, #ignored, #article/<id>), so links can be
 // shared and the browser's back button works
