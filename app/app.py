@@ -260,14 +260,19 @@ def page():
 
 @app.get("/rss.xml")
 def rss():
-    """RSS 2.0 feed of the accepted articles, newest first (a reviewer's decision wins over the job's own status)."""
+    """RSS 2.0 feed of every article flagged as important, newest first: the accepted ones, plus those still in review that
+    carry a priority category (Must read, Of interest, FYI). Ignored ones and Low priority ones are left out. A reviewer's
+    decision wins over the job's own status."""
     articles, decisions = (f.result() for f in [pool.submit(read_page_articles), pool.submit(read_decisions)])
     esc = html_lib.escape
     items = []
     for key, aliases, row in articles:
         decision = next((decisions[k][0] for k in (key, *aliases) if k in decisions), None)
         decision = "ignored" if decision == "removed" else decision
-        if decision == "accepted" or (decision in (None, "") and row.get("status") == "accepted"):
+        if decision == "ignored":
+            continue
+        if (decision == "accepted" or row.get("status") == "accepted"
+                or (row.get("status") == "review" and row.get("prio") in ("Must read", "Of interest", "FYI"))):
             items.append(row)
     items.sort(key=lambda r: r.get("first_seen") or "", reverse=True)
     base = request.url_root
@@ -279,10 +284,11 @@ def rss():
             pub = ""
         link = esc(r.get("link") or base)
         desc = " ".join(filter(None, (r.get("cite"), r.get("summary"))))
+        cats = "".join(f"<category>{esc(c)}</category>" for c in (r.get("prio"), r.get("product")) if c)
         out.append(f"<item><title>{esc(r['title'])}</title><link>{link}</link><guid isPermaLink=\"false\">{esc(str(r['id']))}</guid>"
-                   f"{pub}<description>{esc(desc)}</description></item>")
-    xml = ('<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>Literature Surveillance: accepted articles</title>'
-           f"<link>{esc(base)}</link><description>Articles accepted for the team, newest first.</description>{''.join(out)}</channel></rss>")
+                   f"{pub}{cats}<description>{esc(desc)}</description></item>")
+    xml = ('<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>Literature Surveillance: important articles</title>'
+           f"<link>{esc(base)}</link><description>Accepted and prioritised articles, newest first.</description>{''.join(out)}</channel></rss>")
     return Response(xml, mimetype="application/rss+xml", headers={"Cache-Control": "no-store"})
 
 
