@@ -27,12 +27,12 @@ from werkzeug.exceptions import HTTPException
 
 from page import SOURCE_NAMES, TEMPLATE, fill, header
 
-TABLES = os.environ.get("LITSURV_TABLES", "medical_prod.apps.literature_surveillance")
+TABLES = os.environ.get("LITSURV_TABLES", "apps_prod.literature_surveillance")
 WAREHOUSE_ID = os.environ.get("DATABRICKS_WAREHOUSE_ID")   # app.yaml takes it from the app's sql-warehouse resource
-ARTICLES, RUNS = f"{TABLES}_articles", f"{TABLES}_runs"   # written by the daily job
-DECISIONS, SETTINGS = f"{TABLES}_decisions", f"{TABLES}_settings"   # written here; surveillance.py reads both
-BOOKMARKS = f"{TABLES}_bookmarks"                      # written here: one row per viewer and bookmarked article
-RULES = f"{TABLES}_rules"                             # read here for the page's lists; maintained in SQL, read by the job
+ARTICLES, RUNS = f"{TABLES}.articles", f"{TABLES}.runs"   # written by the daily job
+DECISIONS, SETTINGS = f"{TABLES}.decisions", f"{TABLES}.settings"   # written here; surveillance.py reads both
+BOOKMARKS = f"{TABLES}.bookmarks"                      # written here: one row per viewer and bookmarked article
+RULES = f"{TABLES}.rules"                             # read here for the page's lists; maintained in SQL, read by the job
 DECISION_VALUES = ("accepted", "ignored", "restored", "removed", "")   # 'removed' is the older name for 'ignored'
 TERM_FIELDS = ["term", "product_category", "pubmed_query", "openalex_query", "scholar_query"]
 TERMS_TYPE = "ARRAY<STRUCT<" + ", ".join(f"{k}: STRING" for k in TERM_FIELDS) + ">>"

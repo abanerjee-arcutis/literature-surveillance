@@ -6,12 +6,9 @@ bundle:
 variables:
   catalog:
     description: Unity Catalog catalog that holds the schema and tables below
-    default: medical_prod                             # EDIT: this workspace has no 'main' catalog
+    default: apps_prod                                # EDIT: this workspace has no 'main' catalog
   schema:
-    default: apps                                     # Medical Affairs schema for app-backing files
-  table_prefix:
-    description: Prefix of the tables in tables.sql (<table_prefix>_articles, _runs, _decisions, _settings, _rules)
-    default: literature_surveillance
+    default: literature_surveillance                   # schema that holds the tables of tables.sql
   warehouse_id:
     description: SQL warehouse the app reads and saves decisions and settings through
     lookup:
@@ -49,7 +46,7 @@ resources:
             python_file: ./surveillance.py
             parameters:
               - --tables
-              - ${var.catalog}.${var.schema}.${var.table_prefix}
+              - ${var.catalog}.${var.schema}
               - --email
               - ${var.notify_email}
               - --secret-scope

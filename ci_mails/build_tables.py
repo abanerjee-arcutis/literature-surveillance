@@ -19,7 +19,7 @@ from datetime import datetime, timezone
 from common import HERE, WORK, config, funding_text, load, study, sv
 from dbsql import sql
 
-PREFIX = "medical_prod.apps.literature_surveillance"
+PREFIX = "apps_prod.literature_surveillance"
 VOLUME = "/Volumes/medical_prod/apps/ci_mails"
 NOW = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 CI_SCHEMA = ("ARRAY<STRUCT<email_item: INT, email_subject: STRING, email_date: STRING, email_pdf: STRING, tier: STRING, "
@@ -77,7 +77,7 @@ def store_record(a) -> dict:
 
 def ci_rows(emails, pool):
     """One row per emailed article, linked to the daily job's article: the one it has, else the one it will add."""
-    prod = sql(f"SELECT id, pmid, doi, title FROM {PREFIX}_articles")
+    prod = sql(f"SELECT id, pmid, doi, title FROM {PREFIX}.articles")
     p_pmid = {r["pmid"]: r["id"] for r in prod if r["pmid"]}
     p_doi = {sv.norm_doi(r["doi"]): r["id"] for r in prod if r["doi"]}
     p_title = {sv.title_key(r["title"]): r["id"] for r in prod}
@@ -142,7 +142,7 @@ if __name__ == "__main__":
     for stmt in [s.strip() for s in re.split(r";[ \t]*$", ddl, flags=re.M) if s.strip()]:   # statements end a line with ';'
         sql(stmt)
     for r in intents:                              # evidence only; the rules themselves are changed in SQL
-        sql(f"""UPDATE {PREFIX}_intents SET l3_keywords = from_json(:l3_keywords, 'ARRAY<STRING>'), flagged_matched = CAST(:fm AS INT),
+        sql(f"""UPDATE {PREFIX}.intents SET l3_keywords = from_json(:l3_keywords, 'ARRAY<STRING>'), flagged_matched = CAST(:fm AS INT),
                        flagged_main = CAST(:fmain AS INT), pool_matched = CAST(:pm AS INT), pool_precision = CAST(:pp AS DOUBLE),
                        examples = from_json(:examples, 'ARRAY<STRING>')
                 WHERE intent_id = :id""", dict(l3_keywords=json.dumps(r["l3_keywords"]), fm=str(r["flagged_matched"]),
@@ -150,10 +150,10 @@ if __name__ == "__main__":
                                               pp=None if r["pool_precision"] is None else str(r["pool_precision"]),
                                               examples=json.dumps(r["examples"]), id=r["intent_id"]))
     for i, part in enumerate(batches(ci)):
-        sql(f"""INSERT {'INTO' if i else 'OVERWRITE'} {PREFIX}_ci_articles
+        sql(f"""INSERT {'INTO' if i else 'OVERWRITE'} {PREFIX}.ci_articles
                 SELECT email_item, email_subject, CAST(email_date AS TIMESTAMP), email_pdf, tier, section, citation, title, journal,
                        try_cast(pub_date AS DATE), pmid, doi, openalex_id, in_pubmed, in_openalex, found_in, links, reviewer_note,
                        in_l1_pool, l1_terms, article_id, intents, intent_score, intent_band, important, record,
                        CAST(loaded_at AS TIMESTAMP)
                 FROM (SELECT inline(from_json(:rows, '{CI_SCHEMA}')))""", dict(rows=part))
-    print(sql(f"SELECT (SELECT count(*) FROM {PREFIX}_intents) intents, (SELECT count(*) FROM {PREFIX}_ci_articles) ci")[0])
+    print(sql(f"SELECT (SELECT count(*) FROM {PREFIX}.intents) intents, (SELECT count(*) FROM {PREFIX}.ci_articles) ci")[0])

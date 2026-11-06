@@ -17,7 +17,7 @@ sys.path.insert(0, ROOT)
 import surveillance as sv  # noqa: E402
 
 VERBOSE = "--verbose" in sys.argv
-PREFIX = "medical_prod.apps.literature_surveillance"
+PREFIX = "apps_prod.literature_surveillance"
 _CONFIG: dict = {}
 
 
@@ -30,13 +30,13 @@ def config() -> dict:
         rules = [dict(r, rank=num(r["rank"]), weight=num(r["weight"]), active=True,
                       match_values=json.loads(r["match_values"]) if r["match_values"] else None)
                  for r in sql(f"""SELECT kind, name, rank, pattern, unless_pattern, to_json(match_values) AS match_values, applies_to,
-                                         weight, note FROM {PREFIX}_rules WHERE active ORDER BY kind, rank""")]
+                                         weight, note FROM {PREFIX}.rules WHERE active ORDER BY kind, rank""")]
         l3 = [dict(r, weight=num(r["weight"]), **{k: json.loads(r[k]) if r[k] else None for k in ("keyword_groups", "none_of", "study_types")})
               for r in sql(f"""SELECT intent_id, kind, intent, weight, why, to_json(keyword_groups) AS keyword_groups,
                                       to_json(none_of) AS none_of, title_regex, text_regex, to_json(study_types) AS study_types,
-                                      unless_regex FROM {PREFIX}_intents WHERE active ORDER BY rank""")]
+                                      unless_regex FROM {PREFIX}.intents WHERE active ORDER BY rank""")]
         sv.RULES.update(sv.load_rules(rules, l3))
-        terms = json.loads(sql(f"SELECT to_json(terms) AS t FROM {PREFIX}_settings ORDER BY updated_at DESC LIMIT 1")[0]["t"])
+        terms = json.loads(sql(f"SELECT to_json(terms) AS t FROM {PREFIX}.settings ORDER BY updated_at DESC LIMIT 1")[0]["t"])
         window = next(r["match_values"] for r in rules if r["kind"] == "ci_window")
         _CONFIG.update(terms=sv.clean_terms(terms), window=tuple(window), rules=rules,
                        fix={r["name"]: json.loads(r["pattern"]) for r in rules if r["kind"] == "ci_fix"})

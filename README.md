@@ -15,7 +15,7 @@ To run it daily on Databricks with a shared review page, follow [DEPLOY.md](DEPL
 
 The job reads its terms, rules and emailed articles from tables and writes the store back, so it runs on
 Databricks (Spark), daily, as set up in [DEPLOY.md](DEPLOY.md). To run it by hand there:
-`databricks bundle run lit_surv_daily`, or as a script with `--tables medical_prod.apps.literature_surveillance`.
+`databricks bundle run lit_surv_daily`, or as a script with `--tables apps_prod.literature_surveillance`.
 Each run searches the last 90 days (`--days`). Run it again tomorrow, next week, whenever: only new articles are
 fetched; everything already seen is kept in the articles table and re-tagged with the current terms and rules.
 The offline test (`python tests/test_offline.py`) needs neither.
@@ -92,7 +92,7 @@ Useful options:
 | `--show-days 180` | how far back the page lists articles (default 90) |
 | `--no-fetch` | skip searching; re-tag and re-score the stored articles (after editing rules) |
 | `--rebuild` | re-download every stored PMID from PubMed (after a parser fix) |
-| `--tables catalog.schema.prefix` | required: the tables `prefix_articles`, `_decisions`, `_settings`, `_runs`, `_rules`, `_intents` and `_ci_articles` (`tables.sql`, `ci_mails/intents.sql`) hold everything the job reads and writes; no page is written, the Databricks app builds it from the tables. Needs Spark, so on Databricks only |
+| `--tables catalog.schema` | required: the tables `articles`, `decisions`, `settings`, `runs`, `rules`, `intents` and `ci_articles` of that schema (`tables.sql`, `ci_mails/intents.sql`) hold everything the job reads and writes; no page is written, the Databricks app builds it from the tables. Needs Spark, so on Databricks only |
 
 ## Files
 
@@ -102,7 +102,7 @@ Useful options:
 | `ci_mails/` | how the L3 reasons were learned from the INFORM Articles of Interest emails, and the script that loads the `_intents` and `_ci_articles` tables (its own README) |
 | `tests/test_offline.py`, `tests/fixture_config.json` | parses fixtures and checks tagging, scoring, summaries, de-duplication and the page data without network; the fixture is a snapshot of the rules, L3 reasons and terms tables |
 | `databricks.yml` | Databricks bundle: the daily job and the review app |
-| `tables.sql` | the tables `medical_prod.apps.literature_surveillance_articles` (one row per article; the whole record is in its `record` column, and the page's copy in `page_row`), `_decisions` (one row per decided article, with `reasons` as an array), `_settings` (one row per Save; the newest applies), `_runs` (one row per run) and `_rules` (the tagging, filtering and page-list rules; `kind` says which). `ci_mails/intents.sql` adds `_intents` (the L3 reasons) and `_ci_articles` |
+| `tables.sql` | the tables `apps_prod.literature_surveillance.articles` (one row per article; the whole record is in its `record` column, and the page's copy in `page_row`), `_decisions` (one row per decided article, with `reasons` as an array), `_settings` (one row per Save; the newest applies), `_runs` (one row per run) and `_rules` (the tagging, filtering and page-list rules; `kind` says which). `ci_mails/intents.sql` adds `_intents` (the L3 reasons) and `_ci_articles` |
 | `app/` | the Databricks app that builds the page from those tables on every visit and saves Accept/Ignore/Restore clicks and Settings to them |
 
 ## How the three sources are combined

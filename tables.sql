@@ -1,12 +1,12 @@
 -- Back-end tables for the literature surveillance job and app, named <prefix>_articles, _runs, _decisions, _settings
--- (prefix medical_prod.apps.literature_surveillance). Run once in the SQL editor (DEPLOY.md, Step 3); running it again changes nothing.
+-- (prefix apps_prod.literature_surveillance). Run once in the SQL editor (DEPLOY.md, Step 3); running it again changes nothing.
 -- The daily job writes _articles and _runs; the app writes _decisions and _settings, and builds the page from all four.
 -- _rules holds the rules that tag and filter articles and the lists the page offers; the L3 reasons are in _intents (ci_mails/intents.sql).
 -- Nothing is built into the code: the job and the app read these tables.
 -- The column lists must match article_row(), decision_row(), settings_row() and run_row() in surveillance.py
 -- (tests/test_offline.py checks).
 
-CREATE TABLE IF NOT EXISTS medical_prod.apps.literature_surveillance_articles (
+CREATE TABLE IF NOT EXISTS apps_prod.literature_surveillance.articles (
   id             STRING NOT NULL COMMENT 'Article id shown on the page: the PMID, else doi:<doi>, openalex:<id> or scholar:<id>',
   aliases        ARRAY<STRING>   COMMENT 'Earlier ids of the same article (e.g. a Google Scholar hit later found in PubMed); a decision may be stored under one',
   pmid           STRING,
@@ -37,8 +37,8 @@ CREATE TABLE IF NOT EXISTS medical_prod.apps.literature_surveillance_articles (
 )
 COMMENT 'Literature surveillance: one row per article found. The daily job rewrites the table on every run and is its only writer.';
 
-CREATE TABLE IF NOT EXISTS medical_prod.apps.literature_surveillance_decisions (
-  article_id STRING NOT NULL COMMENT 'literature_surveillance_articles.id, or one of its aliases',
+CREATE TABLE IF NOT EXISTS apps_prod.literature_surveillance.decisions (
+  article_id STRING NOT NULL COMMENT 'articles.id, or one of its aliases',
   decision   STRING NOT NULL COMMENT 'accepted, ignored, or restored (back to review despite an exclusion rule, a Must read score or an Articles of Interest email)',
   reasons    ARRAY<STRING>   COMMENT 'Keywords and reasons the reviewer ticked when accepting or ignoring',
   decided_by STRING          COMMENT 'Reviewer email',
@@ -47,15 +47,15 @@ CREATE TABLE IF NOT EXISTS medical_prod.apps.literature_surveillance_decisions (
 COMMENT 'Literature surveillance: reviewer decisions saved by the app, one row per article that has one. Undo deletes the row.'
 TBLPROPERTIES ('delta.enableDeletionVectors' = 'true', 'delta.enableRowTracking' = 'true');  -- two reviewers saving at once don't conflict
 
-CREATE TABLE IF NOT EXISTS medical_prod.apps.literature_surveillance_bookmarks (
-  article_id    STRING NOT NULL COMMENT 'literature_surveillance_articles.id, or one of its aliases',
+CREATE TABLE IF NOT EXISTS apps_prod.literature_surveillance.bookmarks (
+  article_id    STRING NOT NULL COMMENT 'articles.id, or one of its aliases',
   user_email    STRING NOT NULL COMMENT 'Viewer who bookmarked it; bookmarks are private to each viewer',
   bookmarked_at TIMESTAMP
 )
 COMMENT 'Literature surveillance: articles bookmarked in the app, one row per viewer and article. Removing a bookmark deletes the row.'
 TBLPROPERTIES ('delta.enableDeletionVectors' = 'true', 'delta.enableRowTracking' = 'true');
 
-CREATE TABLE IF NOT EXISTS medical_prod.apps.literature_surveillance_settings (
+CREATE TABLE IF NOT EXISTS apps_prod.literature_surveillance.settings (
   updated_at        TIMESTAMP NOT NULL,
   updated_by        STRING,
   sources           ARRAY<STRING> COMMENT 'Sources switched on: pubmed, openalex, scholar',
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS medical_prod.apps.literature_surveillance_settings (
 )
 COMMENT 'Literature surveillance: the Settings dialog, one row per Save in the app. The newest row applies; the job stops when there is none.';
 
-CREATE TABLE IF NOT EXISTS medical_prod.apps.literature_surveillance_runs (
+CREATE TABLE IF NOT EXISTS apps_prod.literature_surveillance.runs (
   run_at            TIMESTAMP NOT NULL,
   window_start      DATE          COMMENT 'Searched for articles from this date',
   window_end        DATE          COMMENT 'to this date',
@@ -86,9 +86,9 @@ COMMENT 'Literature surveillance: one row per run of the daily job. The app take
 
 -- Tables created before the L3 score (November 2026) lack the runs table's last column. Add it once; until then the job
 -- skips it and the page's Settings → L3 tab cannot list the L3 reasons:
---   ALTER TABLE medical_prod.apps.literature_surveillance_runs ADD COLUMNS (l3_rules STRING COMMENT 'The L3 reasons and push-down rules the run scored with, as JSON (the _intents table)');
+--   ALTER TABLE apps_prod.literature_surveillance.runs ADD COLUMNS (l3_rules STRING COMMENT 'The L3 reasons and push-down rules the run scored with, as JSON (the _intents table)');
 
-CREATE TABLE IF NOT EXISTS medical_prod.apps.literature_surveillance_rules (
+CREATE TABLE IF NOT EXISTS apps_prod.literature_surveillance.rules (
   kind          STRING NOT NULL COMMENT 'What the row is: exclusion, disease, study_type, study_type_text, openalex_type, intent_label, intent_rule, intent_abstract_rule, keyword, sponsor_company, reason_accepted, reason_ignored, l3_band, l3_param, default, not_article_type, not_article_title, ci_fix, ci_window (see DEPLOY.md, Step 3)',
   name          STRING NOT NULL COMMENT 'The label the rule gives, or the rule name',
   rank          INT             COMMENT 'Order within its kind; where the first match wins, the lowest rank is tried first',

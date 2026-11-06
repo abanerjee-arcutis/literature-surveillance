@@ -1126,7 +1126,7 @@ class Tables:
         from pyspark.sql import SparkSession
         self.spark = SparkSession.builder.getOrCreate()
         self.articles_t, self.decisions_t, self.settings_t, self.runs_t, self.rules_t, self.intents_t, self.ci_t = (
-            f"{prefix}_{n}" for n in ("articles", "decisions", "settings", "runs", "rules", "intents", "ci_articles"))
+            f"{prefix}.{n}" for n in ("articles", "decisions", "settings", "runs", "rules", "intents", "ci_articles"))
         for t in (self.articles_t, self.decisions_t, self.settings_t, self.runs_t, self.rules_t, self.intents_t, self.ci_t):
             if not self.spark.catalog.tableExists(t):
                 sys.exit(f"Table {t} does not exist or you can't read it. Create the tables with tables.sql and "
@@ -1191,7 +1191,7 @@ def main():
     ap.add_argument("--openalex-key", help="OpenAlex API key (or env OPENALEX_API_KEY); optional")
     ap.add_argument("--secret-scope", help="Databricks secret scope holding pubmed-api-key, serpapi-key, openalex-api-key")
     ap.add_argument("--email", default=os.environ.get("CONTACT_EMAIL"), help="contact email for the User-Agent")
-    ap.add_argument("--tables", required=True, help="Unity Catalog table name prefix, e.g. medical_prod.apps.literature_surveillance: "
+    ap.add_argument("--tables", required=True, help="Unity Catalog schema holding the tables, e.g. apps_prod.literature_surveillance: "
                                                     "the job reads its settings, rules and emailed articles from the tables there and writes the "
                                                     "store and a run log (tables.sql); needs Spark")
     ap.add_argument("--sources", help="comma-separated: pubmed, openalex, scholar (default: as saved in Settings)")

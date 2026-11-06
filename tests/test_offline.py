@@ -302,7 +302,7 @@ assert saved["priority_keywords"] == ["child", "scalp"], saved["priority_keyword
 # --- Unity Catalog tables: rows carry exactly the columns of tables.sql, in order --------------------------
 sql_text = open(os.path.join(ROOT, "tables.sql"), encoding="utf-8").read()
 def columns(table):
-    body = re.search(rf"literature_surveillance_{table} \((.*?)\n\)", sql_text, re.S).group(1)
+    body = re.search(rf"literature_surveillance\.{table} \((.*?)\n\)", sql_text, re.S).group(1)
     return re.findall(r"^  (\w+) ", body, re.M)
 ar = S.article_row("42728891", a)
 assert list(ar) == columns("articles"), (list(ar), columns("articles"))
@@ -321,7 +321,7 @@ sr = S.settings_row(saved)
 assert list(sr) == columns("settings") and sr["terms"] == [("Tapinarof", "Competitor", "tapinarof[tiab]", "", "")] and sr["scholar_pages"] == 2
 assert all(re.findall(r"(\w+): STRING", s) == S.TERM_FIELDS for s in re.findall(r"ARRAY<STRUCT<(.*?)>>", sql_text))
 run_settings = dict(saved, keys=dict(pubmed=True, openalex=False, scholar=True), l3_rules=L3)
-rr = S.run_row(run_settings, S.date(2026, 7, 30), S.date(2026, 10, 28), "medical_prod.apps.literature_surveillance_settings", 120, 4, 80)
+rr = S.run_row(run_settings, S.date(2026, 7, 30), S.date(2026, 10, 28), "apps_prod.literature_surveillance.settings", 120, 4, 80)
 assert list(rr) == columns("runs") and rr["api_keys"] == (True, False, True) and rr["terms"] == sr["terms"]
 assert json.loads(rr["l3_rules"]) == L3
 assert P.header(["openalex", "pubmed"], S.date(2026, 7, 30), S.date(2026, 10, 28), S.datetime(2026, 10, 28, 13, 5)) == \

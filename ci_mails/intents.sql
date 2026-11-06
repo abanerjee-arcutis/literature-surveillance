@@ -1,10 +1,10 @@
 -- The L3 reasons (the intent list) and the articles from the INFORM "Articles of Interest" emails they were learned from,
--- plus a view of the surveillance articles ranked by L3 score. Prefix medical_prod.apps.literature_surveillance, like
+-- plus a view of the surveillance articles ranked by L3 score. Prefix apps_prod.literature_surveillance, like
 -- tables.sql. build_tables.py creates these and fills the two tables; running it again replaces their rows.
 -- The daily job (surveillance.py) reads both tables: it scores with the active rows of _intents (the only copy of the
 -- L3 reasons), and puts every article in _ci_articles on the accepted feed.
 
-CREATE TABLE IF NOT EXISTS medical_prod.apps.literature_surveillance_intents (
+CREATE TABLE IF NOT EXISTS apps_prod.literature_surveillance.intents (
   intent_id        STRING NOT NULL COMMENT 'Short id, e.g. own_product',
   kind             STRING NOT NULL COMMENT 'intent: an L3 reason, adds its weight when it matches; deprioritise: a push-down rule, takes points off',
   intent           STRING NOT NULL COMMENT 'Name shown to reviewers',
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS medical_prod.apps.literature_surveillance_intents (
 )
 COMMENT 'Literature surveillance: the L3 reasons (intent list) the daily job scores articles with. Why Medical Affairs flags an article, learned from the INFORM Articles of Interest emails (Jan-Oct 2026), as keyword groups with a weight, plus push-down rules. Changes apply from the next run.';
 
-CREATE TABLE IF NOT EXISTS medical_prod.apps.literature_surveillance_ci_articles (
+CREATE TABLE IF NOT EXISTS apps_prod.literature_surveillance.ci_articles (
   email_item     INT NOT NULL    COMMENT 'Order across all emails, oldest first',
   email_subject  STRING,
   email_date     TIMESTAMP,
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS medical_prod.apps.literature_surveillance_ci_articles
   reviewer_note  STRING          COMMENT 'What the email says about the article',
   in_l1_pool     BOOLEAN         COMMENT 'The current L1 terms find it in PubMed or OpenAlex',
   l1_terms       ARRAY<STRING>   COMMENT 'L1 terms that find it',
-  article_id     STRING          COMMENT 'literature_surveillance_articles.id: of the article the daily job has, else of the one it adds from record',
+  article_id     STRING          COMMENT 'articles.id: of the article the daily job has, else of the one it adds from record',
   intents        ARRAY<STRING>   COMMENT 'L3 reasons its title and abstract match, best first',
   intent_score   INT             COMMENT 'L3 score when loaded, without L3 keywords from Settings',
   intent_band    STRING          COMMENT 'Must read (85+), Of interest (60-84), FYI (40-59), Low',
@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS medical_prod.apps.literature_surveillance_ci_articles
 )
 COMMENT 'Literature surveillance: the articles Medical Affairs sent in the INFORM Articles of Interest emails (/Volumes/medical_prod/apps/ci_mails), matched to PubMed and OpenAlex. The daily job puts each on the accepted feed; the L3 reasons were learned from them.';
 
-CREATE OR REPLACE VIEW medical_prod.apps.literature_surveillance_ranked
+CREATE OR REPLACE VIEW apps_prod.literature_surveillance.ranked
 COMMENT 'Literature surveillance articles ranked by L3 score, as the last run of the daily job scored them, with the feed each is on (a reviewer decision, else accepted automatically, else ignored by an exclusion rule, else review).'
 AS
 WITH a AS (
@@ -70,7 +70,7 @@ WITH a AS (
          from_json(get_json_object(record, '$.l3_intents'), 'ARRAY<STRUCT<intent: STRING, points: INT>>') AS l3_reasons,
          from_json(get_json_object(record, '$.l3_push_down'), 'ARRAY<STRUCT<rule: STRING, points: INT>>') AS l3_push_down,
          get_json_object(record, '$.auto_accept') AS auto_accept
-  FROM medical_prod.apps.literature_surveillance_articles
+  FROM apps_prod.literature_surveillance.articles
 )
 SELECT a.id, a.title, a.journal, a.pub_date, a.first_seen, a.sources, a.matched_terms, a.study_type, a.priority, a.l3_score,
        transform(a.l3_reasons, x -> x.intent) AS l3_reasons, transform(a.l3_push_down, x -> x.rule) AS l3_push_down,
@@ -79,5 +79,5 @@ SELECT a.id, a.title, a.journal, a.pub_date, a.first_seen, a.sources, a.matched_
             WHEN d.decision = 'restored' THEN 'review' WHEN a.auto_accept IS NOT NULL THEN 'accepted'
             WHEN a.exclusion_rule IS NOT NULL THEN 'ignored' ELSE 'review' END AS feed,
        row_number() OVER (ORDER BY a.l3_score DESC NULLS LAST, a.pub_date DESC, a.id) AS l3_rank, a.url
-FROM a LEFT JOIN medical_prod.apps.literature_surveillance_decisions d
+FROM a LEFT JOIN apps_prod.literature_surveillance.decisions d
   ON d.article_id = a.id OR array_contains(a.aliases, d.article_id);
