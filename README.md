@@ -15,7 +15,9 @@ To run it daily on Databricks with a shared review page, follow [DEPLOY.md](DEPL
 
 The job reads its terms, rules and emailed articles from tables and writes the store back, so it runs on
 Databricks (Spark), daily, as set up in [DEPLOY.md](DEPLOY.md). To run it by hand there:
-`databricks bundle run lit_surv_daily`, or as a script with `--tables apps_prod.literature_surveillance`.
+**Run now** on the job's page (`databricks jobs run-now 568555739262476`), or as a script with
+`--tables apps_prod.literature_surveillance`. The job runs `surveillance.py` from this repo's `main` branch, checked
+out at the start of each run, so a pushed change is live from the next run.
 Each run searches the last 90 days (`--days`). Run it again tomorrow, next week, whenever: only new articles are
 fetched; everything already seen is kept in the articles table and re-tagged with the current terms and rules.
 The offline test (`python tests/test_offline.py`) needs neither.
@@ -108,7 +110,7 @@ Useful options:
 | `app/template.html`, `app/page.py` | the page template (no sample data in it) and the code that fills its data block (used by the app) |
 | `ci_mails/` | how the L3 reasons were learned from the INFORM Articles of Interest emails, and the script that loads the `_intents` and `_ci_articles` tables (its own README) |
 | `tests/test_offline.py`, `tests/fixture_config.json` | parses fixtures and checks tagging, scoring, summaries, de-duplication and the page data without network; the fixture is a snapshot of the rules, L3 reasons and terms tables |
-| `databricks.yml` | Databricks bundle: the daily job and the review app |
+| `job.json` | the daily job's settings (schedule, parameters, the GitHub repo and branch it runs from): `databricks jobs reset --json @job.json` applies them |
 | `tables.sql` | the tables `apps_prod.literature_surveillance.articles` (one row per article; the whole record is in its `record` column, and the page's copy in `page_row`), `_decisions` (one row per decided article, with `reasons` as an array), `_settings` (one row per Save; the newest applies), `_runs` (one row per run) and `_rules` (the tagging, filtering and page-list rules; `kind` says which). `ci_mails/intents.sql` adds `_intents` (the L3 reasons) and `_ci_articles` |
 | `app/` | the Databricks app that builds the page from those tables on every visit and saves Accept/Ignore/Restore clicks and Settings to them |
 

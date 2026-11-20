@@ -4,4 +4,4 @@ env:
   - name: LITSURV_TABLES
     value: "apps_prod.literature_surveillance"
   - name: DATABRICKS_WAREHOUSE_ID
-    valueFrom: sql-warehouse                         # the app resource of that name in databricks.yml
+    valueFrom: sql-warehouse                         # the app's resource of that name (Compute > Apps > Edit)

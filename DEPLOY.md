@@ -23,8 +23,9 @@ most of it waiting for access or keys.
   the **settings table**, so the next run uses them. The app runs its SQL on a **SQL warehouse**.
 - The tables are the only place the data lives; no files are written. Being tables, they can also be
   queried in the SQL editor, dashboards or Genie, e.g. `SELECT * FROM apps_prod.literature_surveillance.decisions`.
-- One file, `databricks.yml`, describes both. A single command (`databricks bundle deploy`) uploads the
-  code and creates or updates the job. The app is deployed from GitHub (see the note under Step 9).
+- Both run their code straight from the GitHub repo's `main` branch; there is no Databricks bundle. The job
+  checks out the latest commit at the start of every run, so a change to `surveillance.py` goes live at the next
+  run once it is pushed. The app is redeployed from GitHub by hand (Step 9). The job's settings are in `job.json`.
 
 ---
 
@@ -161,32 +162,35 @@ and `_rules` and `_intents` need their rows (Step 3).
 
 ## Step 6 – Fill in your settings (three places)
 
-1. **`databricks.yml`**, at the bottom: the workspace URL (already set to `https://adb-7405608290672797.17.azuredatabricks.net`).
-2. **`databricks.yml`**, at the top under `variables`: set `catalog` and `schema` (if not `medical_prod`
-   and `apps`), `notify_email` (failure emails go there), and under `warehouse_id` the name of a SQL
-   warehouse you can use (**SQL Warehouses** in the sidebar; a serverless one starts fastest).
-3. **`app/app.yaml`**: set `LITSURV_TABLES` to the tables' common start, e.g.
-   `apps_prod.literature_surveillance`.
+1. **`job.json`**: the job's parameters `--tables` (the tables' common start, e.g.
+   `apps_prod.literature_surveillance`), `--email` (failure emails go there; also sent to NCBI and OpenAlex as
+   the contact address) and `--secret-scope`, the same address under `on_failure`, and under `git_source` the
+   GitHub repo and branch the job runs from.
+2. **`app/app.yaml`**: set `LITSURV_TABLES` to the same tables' common start. The app's SQL warehouse is its
+   `sql-warehouse` resource (**Compute → Apps → literature-surveillance → Edit**).
 
-The schedule is in `databricks.yml` too: `"0 0 6 * * ?"` with `America/Los_Angeles` means every day at 06:00
+The schedule is in `job.json` too: `"0 0 6 * * ?"` with `America/Los_Angeles` means every day at 06:00
 Pacific time. To run at 07:30 instead, use `"0 30 7 * * ?"`.
 
 ---
 
-## Step 7 – Deploy
+## Step 7 – Create the job
 
-From the project folder:
+The job runs `surveillance.py` from GitHub, so nothing is uploaded: push the code to `main` first. This
+workspace already has the job (id `568555739262476`, the `job_id` in `job.json`); on a new workspace, create it once
+from the project folder:
 
 ```powershell
-databricks bundle validate
-databricks bundle deploy
+python -c "import json; json.dump(json.load(open('job.json'))['new_settings'], open('job_new.json', 'w'))"
+databricks jobs create --json @job_new.json
 ```
 
-`validate` checks the file for mistakes; fix anything it reports before deploying. `deploy` uploads the
-code to your workspace folder (`/Workspace/Users/<you>/.bundle/lit-surv/prod/files`) and creates:
+It prints the new job's id: put it in `job.json` as `job_id`. The job **Literature surveillance (daily)** is
+under **Jobs & Pipelines** in the sidebar. To change its settings later, edit `job.json` and run
+`databricks jobs reset --json @job.json` (it replaces all of the job's settings with the file's).
 
-- the job **Literature surveillance (daily)** (under **Jobs & Pipelines** in the sidebar)
-- (the app **literature-surveillance** is no longer part of the bundle; it deploys from GitHub, see Step 9)
+The repo is public, so the job should need no Git credentials. If a run fails at checkout with a Git credential
+error, add a GitHub token under your Databricks **Settings → Linked accounts → Git integration**.
 
 ---
 
@@ -195,10 +199,10 @@ code to your workspace folder (`/Workspace/Users/<you>/.bundle/lit-surv/prod/fil
 Don't wait until tomorrow morning:
 
 ```powershell
-databricks bundle run lit_surv_daily
+databricks jobs run-now 568555739262476
 ```
 
-It prints a link to the run and waits until it finishes (a few minutes). In the browser: **Jobs &
+(or **Run now** on the job's page). It prints a link to the run and waits until it finishes (a few minutes). In the browser: **Jobs &
 Pipelines** → **Literature surveillance (daily)** → the latest run → **Output**. You should see the same
 per-term counts as on your laptop.
 
@@ -210,7 +214,7 @@ shows one row for this run, with the number of articles and how many are on the 
 ## Step 9 – Start the app
 
 ```powershell
-In Databricks: **Compute → Apps → literature-surveillance → Deploy**, source GitHub, source code path `app`. (The app is not in `databricks.yml`; a bundle deploy no longer touches it.)
+In Databricks: **Compute → Apps → literature-surveillance → Deploy**, source GitHub, source code path `app`.
 ```
 
 This deploys the app code and starts it. It takes a minute or two and prints the app URL. You can also
@@ -237,14 +241,15 @@ articles, runs and rules tables and read/write access to the decisions and setti
 | You want to… | Do this |
 |---|---|
 | See if today's run worked | Jobs & Pipelines → the job → Runs. Failed runs also email `notify_email`. |
-| Change search terms, sources or priority keywords | in the app: **Settings** (top right) → **Sources**, **L1 keywords** or **L3 priority keywords** → Save. The next run uses them; to apply now, `databricks bundle run lit_surv_daily`. Each Save adds a row to the settings table, so it is also the history of changes. |
+| Change search terms, sources or priority keywords | in the app: **Settings** (top right) → **Sources**, **L1 keywords** or **L3 priority keywords** → Save. The next run uses them; to apply now, `databricks jobs run-now 568555739262476`. Each Save adds a row to the settings table, so it is also the history of changes. |
 | Change an L3 reason or push-down rule (its points, keywords, or switch it off) | in the SQL editor, e.g. `UPDATE apps_prod.literature_surveillance.intents SET weight = 80 WHERE intent_id = 'seb_derm'` (or `SET active = false`). The next run scores with it and Settings → L3 lists it |
 | Add the articles of new Articles of Interest emails | save the emails as PDF to `/Volumes/medical_prod/apps/ci_mails`, then run the `ci_mails` steps (`ci_mails/README.md`); the next run puts them on the accepted feed |
 | See what each run searched and found | `SELECT * FROM apps_prod.literature_surveillance.runs ORDER BY run_at DESC` |
-| Change exclusion rules, disease / study-type / intent / keyword tagging, sponsors, priority bands, or the reasons offered when accepting or ignoring | in the SQL editor on `apps_prod.literature_surveillance.rules`, e.g. `UPDATE … SET active = false WHERE kind = 'exclusion' AND name = 'Veterinary'`, or `INSERT` a row (`kind`, `name`, `pattern`, `applies_to`, …; the columns are described in `tables.sql`). The next run uses it; the app reads the page lists on every visit. To apply now, `databricks bundle run lit_surv_daily`. |
-| Change the code or the page template (`app/template.html`) | edit, run `python tests\test_offline.py`, push to GitHub, then redeploy the app in Databricks (**Compute → Apps → literature-surveillance → Deploy**). `databricks bundle deploy` is only for the job |
+| Change exclusion rules, disease / study-type / intent / keyword tagging, sponsors, priority bands, or the reasons offered when accepting or ignoring | in the SQL editor on `apps_prod.literature_surveillance.rules`, e.g. `UPDATE … SET active = false WHERE kind = 'exclusion' AND name = 'Veterinary'`, or `INSERT` a row (`kind`, `name`, `pattern`, `applies_to`, …; the columns are described in `tables.sql`). The next run uses it; the app reads the page lists on every visit. To apply now, `databricks jobs run-now 568555739262476`. |
+| Change the job's code (`surveillance.py`) | edit, run `python tests\test_offline.py`, push to `main`. The next run uses it (to run it now, **Run now** on the job's page). Nothing to deploy |
+| Change the page template (`app/template.html`) | edit, run `python tests\test_offline.py`, push to `main`, then redeploy the app in Databricks (**Compute → Apps → literature-surveillance → Deploy**) |
 | Change the app | edit `app/` → push to GitHub → redeploy in Databricks (**Compute → Apps → literature-surveillance → Deploy**, source code path `app`) |
-| Pause the daily run | job page → **Schedules & Triggers** → Pause (or set `pause_status: PAUSED` and deploy) |
+| Pause the daily run | job page → **Schedules & Triggers** → Pause (and set `pause_status` to `PAUSED` in `job.json`, so a later `databricks jobs reset` keeps it paused) |
 | Stop paying for the app while unused | `databricks apps stop literature-surveillance`; start again with `databricks apps start literature-surveillance` |
 
 ### Upgrading a deployment made before the L3 score (November 2026)
@@ -256,7 +261,7 @@ read articles and those sent in Articles of Interest emails go to the accepted f
    `ALTER TABLE apps_prod.literature_surveillance.runs ADD COLUMNS (l3_rules STRING)`. Without it the
    job still runs, but Settings → L3 cannot list the reasons.
 2. `cd ci_mails` and `python build_tables.py`: creates and fills `_intents` and `_ci_articles`.
-3. `databricks bundle deploy`, then `databricks bundle run lit_surv_daily` (rescores every article and adds the
+3. Push to `main`, run the job (`databricks jobs run-now 568555739262476`: it rescores every article and adds the
    emailed ones) and redeploy the app in Databricks (**Compute → Apps → Deploy**).
 
 Decisions already saved keep working: a reviewer's decision always wins over the automatic ones.
@@ -270,17 +275,16 @@ running, whether or not anyone looks at it. Ask your admin what that costs in yo
 
 | What you see | What to do |
 |---|---|
-| `bundle validate` complains about `uc_securable` or `environment_version` | update the CLI (`winget upgrade Databricks.DatabricksCLI`) and try again. If it still fails: for `uc_securable`, delete the app's `resources:` block in `databricks.yml` and grant access by hand (row below). |
 | Job output: `ConnectionError`, `Max retries exceeded`, or a timeout to eutils / openalex / serpapi | serverless compute can't reach the internet; ask your admin to allow those three domains |
 | Job output: `Google Scholar skipped: no SerpApi key` | the `serpapi-key` secret is missing or misspelled (Step 4) |
 | Job output: `PUBMED_API_KEY does not look like an NCBI key` | re-enter the `pubmed-api-key` secret (Step 4) |
 | Job output: `Google Scholar ERROR … run out of searches` | your SerpApi plan is used up; upgrade it, or switch Google Scholar off in the app (**Settings → Sources**) |
 | Job fails: `Table apps_prod.literature_surveillance_… does not exist or you can't read it` | run `tables.sql` (Step 3). If it exists, you need SELECT and MODIFY on the tables |
-| Deploy says `CATALOG_DOES_NOT_EXIST` | the catalog or schema in `databricks.yml` doesn't exist. `databricks catalogs list` shows the catalogs you have; use the same names in `app/app.yaml` |
+| Job output says `CATALOG_DOES_NOT_EXIST` | the catalog or schema in `--tables` (`job.json`) doesn't exist. `databricks catalogs list` shows the catalogs you have; use the same names in `app/app.yaml` |
 | App page says **The database is starting up** | the SQL warehouse was stopped and took over two minutes to start; reload. If it happens often, raise the warehouse's auto-stop time (SQL Warehouses → the warehouse → Edit) |
 | App page says **The Literature Surveillance could not be loaded** | a query failed; its message is under *Technical detail*. Often a permission (rows below) or a table renamed in `app/app.yaml` |
 | App page says **No articles yet** | the runs table is empty: the job hasn't run since the tables were created; run Step 8, or check `LITSURV_TABLES` in `app/app.yaml` |
 | App shows an error mentioning permission, `403`, `TABLE_OR_VIEW_NOT_FOUND` or `INSUFFICIENT_PERMISSIONS` | give the app's service principal access. Run `databricks apps get literature-surveillance` and copy `service_principal_client_id`, then in the SQL editor: <br>`GRANT USE CATALOG ON CATALOG medical_prod TO \`<that id>\`;`<br>`GRANT USE SCHEMA ON SCHEMA medical_prod.apps TO \`<that id>\`;`<br>`GRANT SELECT ON TABLE apps_prod.literature_surveillance.articles TO \`<that id>\`;`<br>`GRANT SELECT ON TABLE apps_prod.literature_surveillance.runs TO \`<that id>\`;`<br>`GRANT SELECT, MODIFY ON TABLE apps_prod.literature_surveillance.decisions TO \`<that id>\`;`<br>`GRANT SELECT, MODIFY ON TABLE apps_prod.literature_surveillance.settings TO \`<that id>\`;`<br>and on the SQL warehouse's **Permissions**, give it **Can use** |
-| `bundle validate` or `deploy` says the warehouse can't be found | `warehouse_id` in `databricks.yml` must name a SQL warehouse exactly as **SQL Warehouses** lists it, and you need **Can use** on it |
-| `validate` or the job says serverless isn't available | ask your admin to enable serverless jobs, or for a cluster policy to use. With a policy, replace `environment_key: default` in the task with `job_cluster_key: small` and add a `job_clusters` section (your admin can give you the exact cluster settings) |
+| The job says serverless isn't available | ask your admin to enable serverless jobs, or for a cluster policy to use. With a policy, replace `"environment_key": "default"` in the task in `job.json` with `"job_cluster_key": "small"` and add a `job_clusters` section (your admin can give you the exact cluster settings) |
+| A run fails at the Git checkout | the job clones `git_source` in `job.json` at the start of each run: check the URL and branch, and if it mentions credentials, add a GitHub token under **Settings → Linked accounts** (Step 7) |
 | A colleague can't open the app | add them under the app's **Permissions** with **Can use** (Step 10) |

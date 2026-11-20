@@ -1,0 +1,38 @@
+{
+  "job_id": 568555739262476,
+  "new_settings": {
+    "name": "Literature surveillance (daily)",
+    "edit_mode": "EDITABLE",
+    "git_source": {
+      "git_url": "https://github.com/abanerjee-arcutis/literature-surveillance",
+      "git_provider": "gitHub",
+      "git_branch": "main"
+    },
+    "schedule": {
+      "quartz_cron_expression": "0 0 6 * * ?",
+      "timezone_id": "America/Los_Angeles",
+      "pause_status": "UNPAUSED"
+    },
+    "email_notifications": {
+      "on_failure": ["abanerjee@arcutis.com"]
+    },
+    "max_concurrent_runs": 1,
+    "timeout_seconds": 3600,
+    "queue": {"enabled": true},
+    "environments": [
+      {"environment_key": "default", "spec": {"environment_version": "2", "dependencies": ["requests"]}}
+    ],
+    "tasks": [
+      {
+        "task_key": "refresh",
+        "environment_key": "default",
+        "spark_python_task": {
+          "python_file": "surveillance.py",
+          "source": "GIT",
+          "parameters": ["--tables", "apps_prod.literature_surveillance", "--email", "abanerjee@arcutis.com",
+                         "--secret-scope", "lit-surv"]
+        }
+      }
+    ]
+  }
+}

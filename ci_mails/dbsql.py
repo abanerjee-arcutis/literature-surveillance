@@ -1,4 +1,4 @@
-"""Run SQL on the SQL warehouse the app uses (databricks.yml: medical-sql-wh-westus2), as the signed-in CLI user.
+"""Run SQL on the SQL warehouse the app uses (medical-sql-wh-westus2), as the signed-in CLI user.
 
 Auth comes from the Databricks CLI config (DATABRICKS_CONFIG_PROFILE picks a profile); DATABRICKS_WAREHOUSE_ID
 overrides the warehouse.
