@@ -266,6 +266,7 @@
   .terms .thead{padding-top:9px;padding-bottom:9px}
   .terms .thead .off{color:#b4b3ad}
   .mlbl{display:none;font-size:11px;color:var(--mute);margin:0 0 2px 2px}
+  .tnew{margin:2px 0 0 9px;line-height:1}
   .fi{width:100%;padding:6px 8px;border:1px solid transparent;border-radius:6px;background:transparent;font-size:13px;color:var(--ink);min-width:0}
   .fi:hover{border-color:var(--line)}
   .fi:focus{outline:none;border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px var(--accent-bg)}
@@ -1466,7 +1467,8 @@ function termRow(t) {
   if (!CATEGORIES.includes(t.product_category)) t.product_category = 'Class';
   const r = document.createElement('div'); r.className = 'trow';
   const isNew = NEW_L1_TERMS.includes((t.term || '').trim().toLowerCase());
-  const field = (k, label, extra = '') => `<div><label class="mlbl">${label}${k === 'term' && isNew ? ' <span class="new" title="Added in November 2026">New</span>' : ''}</label><textarea class="fi${k.endsWith('query') ? ' q' : ''}" data-k="${k}" rows="1" aria-label="${label}" spellcheck="false"${extra}>${esc(t[k])}</textarea></div>`;
+  // the badge sits under the term box, not in the .mlbl label, which is shown only on narrow screens
+  const field = (k, label, extra = '') => `<div><label class="mlbl">${label}</label><textarea class="fi${k.endsWith('query') ? ' q' : ''}" data-k="${k}" rows="1" aria-label="${label}" spellcheck="false"${extra}>${esc(t[k])}</textarea>${k === 'term' && isNew ? '<div class="tnew"><span class="new" title="Added in November 2026">New</span></div>' : ''}</div>`;
   r.innerHTML = field('term', 'Term', ' placeholder="Display name"') +
     `<div><label class="mlbl">Category</label><select class="fi" data-k="product_category" aria-label="Category">${CATEGORIES.map(c => `<option${c === t.product_category ? ' selected' : ''}>${c}</option>`).join('')}</select></div>` +
     field('pubmed_query', 'PubMed query', ' placeholder="e.g. tapinarof[tiab]"') + field('openalex_query', 'OpenAlex query') + field('scholar_query', 'Google Scholar query') +
