@@ -830,14 +830,37 @@ def l3_band(score: int) -> str:
     return next(band for low, band in RULES["bands"] if score >= low)
 
 
+def reason_label(h: dict) -> str:
+    """An L3 reason (an item of l3_score()'s reasons) as a why line names it; the L3 keywords from Settings are named
+    by the keywords that matched, since 'Your L3 keywords' says nothing to whoever reads a digest."""
+    return f"L3 keyword: {', '.join(h['keywords'])}" if h["id"] == "own_keywords" else h["intent"]
+
+
+UNINFORMATIVE = ("Other", "Unassigned", "Unknown", "Article", "")   # tags that say nothing about an article
+
+
+def why_flagged(a: dict, most: int = 3) -> str:
+    """Why the article is worth reading, in one line: the L3 reasons it matched, best first (at most `most`). They are
+    what Medical Affairs sends articles for, learned from the Articles of Interest emails; the _intents table says
+    the why behind each. An article no reason matched is described by the tags a reviewer is offered as reasons:
+    its intent, study type, diseases, and the drugs, patient groups and body sites in its title and abstract."""
+    if a.get("l3_intents"):
+        return " · ".join(reason_label(h) for h in a["l3_intents"][:most])
+    intent, study = a.get("intent") or "", a.get("study_type") or ""
+    tags = [intent, "" if intent.startswith(study) else study, *(a.get("disease") or []), *(a.get("keywords") or [])]
+    return " · ".join(t for t in dict.fromkeys(tags) if t not in UNINFORMATIVE) or "No L3 reason matched"
+
+
 def auto_accept(a: dict) -> str | None:
-    """Why the article is on the accepted feed when no reviewer has decided: it was sent in an Articles of Interest
-    email (whatever the exclusion rules say), or its L3 score is Must read and no exclusion rule fired."""
+    """Why the article is on the accepted feed when no reviewer has decided, or None when it is not accepted
+    automatically. It is when it was sent in an Articles of Interest email (whatever the exclusion rules say), or
+    when its L3 score is Must read and no exclusion rule fired. For an emailed article the line gives why it is worth
+    reading (why_flagged()), not that an email sent it: the page marks those with an envelope, and the article
+    page and the CSV give the email and its date."""
     if a.get("emailed"):
-        sent = date.fromisoformat(a["emailed"]["date"])
-        return f"Sent in the Articles of Interest email of {sent.day} {sent:%b %Y}"
+        return why_flagged(a)
     if not a.get("rule") and a.get("priority") == RULES["auto_accept_band"]:
-        return f"{RULES['auto_accept_band']}: {a['l3_intents'][0]['intent']}"
+        return f"{RULES['auto_accept_band']}: {reason_label(a['l3_intents'][0])}"
     return None
 
 

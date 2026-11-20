@@ -32,16 +32,20 @@ The offline test (`python tests/test_offline.py`) needs neither.
   (safety in red), access and priority (with its L3 score; hover it for the reasons). **New** marks articles a run
   first found in the last 7 days.
 - **Why accept / why ignore** – ✓ and ✕ first ask why, with no free text: tick at least one chip under
-  *Keywords in this article* (its L3 priority, the L3 reasons and push-downs behind its score, whether it was emailed and how much text there is, its disease, intent, study type and sponsor, plus the drugs, patient groups,
+  *Keywords in this article* (its L3 priority, the L3 reasons and push-downs behind its score and how much text there is, its disease, intent, study type and sponsor, plus the drugs, patient groups,
   body sites and evidence words found in its title and abstract) or *Reason* (a fixed list each for
   accepting and ignoring, `REASONS` in `app/template.html`). Enter confirms, Esc cancels. The ticks are saved
   with the decision, shown under the title in the accepted feed, in the Reason column of the ignored feed
   and on the article page (*Edit* there changes them), and counted by the Reason filter.
 - **Accepted feed** – articles worth passing on to the team: those a reviewer accepted, plus two kinds accepted
-  automatically, each with its own line under the title: ✉ every article sent in an INFORM Articles of Interest
-  email (`ci_mails/`), whatever its score or the exclusion rules, and ★ every Must read article no exclusion rule
-  ignored. *Move back to review* undoes an automatic accept (saved as `restored`); a reviewer's decision always wins.
-  The article page shows the email's date and what it said about the article.
+  automatically: ✉ every article sent in an INFORM Articles of Interest email (`ci_mails/`), whatever its score or
+  the exclusion rules, and ★ every Must read article no exclusion rule ignored. The line under the title says why
+  the article is worth reading, never just that an email sent it: an emailed article's L3 reasons, best first (at
+  most three; if none matched, its intent, study type, disease and keywords), a Must read article's best reason
+  (`why_flagged()` and `auto_accept()` in `surveillance.py`). Hovering the line, or a reason on the article page,
+  shows the why behind each reason (the `why` column of the `_intents` table). The same line is the *Why* of the
+  digest. *Move back to review* undoes an automatic accept (saved as `restored`); a reviewer's decision always wins.
+  The article page shows the email's date and what it said about the article; the CSV has the email's date.
 - **Ignored feed** – articles a reviewer ignored, plus those the exclusion rules filtered out. *Restore*
   sends one back to review (moving back to review asks nothing and clears the reasons).
 - **Who decided** – every decision is saved with the reviewer's email and time (the app reads them from the

@@ -276,8 +276,17 @@ assert sorted(mstore) == ["42600000", new_key] and new_key.startswith("email:") 
 assert mstore["42600000"].get("sources") == d.get("sources") and mstore["42600000"]["emailed"]["date"] == "2026-03-02"   # the first email
 for x in mstore.values():
     S.enrich(x, term_cat)
-assert mstore["42600000"]["rule"] and mstore["42600000"]["auto_accept"] == "Sent in the Articles of Interest email of 2 Mar 2026"
+# the line under an emailed article says why it is worth reading, never just that an email sent it: its L3 reasons,
+# best first, or, when none matched (here pushed down to 0 and caught by an exclusion rule), its tags
+assert mstore["42600000"]["rule"] and mstore["42600000"]["auto_accept"] == "Efficacy · RCT · Ruxolitinib"
 mrow = S.to_page_row(mstore[new_key], None, key=new_key)
+assert mrow["auto"] == "Own product: topical roflumilast · Roflumilast discussed in a broader article", mrow["auto"]
+assert not any(re.search(r"mail|interest", x["auto_accept"], re.I) for x in mstore.values())
+assert S.why_flagged(dict(l3_intents=[dict(id="own_keywords", intent="Your L3 keywords", points=60, keywords=["crisaborole", "itch"])])) \
+    == "L3 keyword: crisaborole, itch"
+assert S.why_flagged(dict(l3_intents=by["42700001"]["l3_intents"] * 2)).count(" · ") == 2           # at most three reasons
+assert S.why_flagged(dict(l3_intents=[], intent="Review & guidance", study_type="Review", disease=["Other"], keywords=[])) == "Review & guidance"
+assert S.why_flagged(dict(l3_intents=[], intent="Other", study_type="Article", disease=["Other"], keywords=[])) == "No L3 reason matched"
 assert mrow["status"] == "accepted" and mrow["src"] == "Email" and mrow["via"] == "Dermatology Online Journal" and mrow["prio"] == "Must read"
 assert mrow["emailed"] == dict(date="2026-10-16", subject="INFORM: Articles of Interest", tier="main", note="Brett, please comment")
 assert S.to_page_row(mstore["42600000"], "restored")["status"] == "review"

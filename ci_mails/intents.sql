@@ -62,19 +62,20 @@ CREATE TABLE IF NOT EXISTS apps_prod.literature_surveillance.ci_articles (
 COMMENT 'Literature surveillance: the articles Medical Affairs sent in the INFORM Articles of Interest emails (/Volumes/medical_prod/apps/ci_mails), matched to PubMed and OpenAlex. The daily job puts each on the accepted feed; the L3 reasons were learned from them.';
 
 CREATE OR REPLACE VIEW apps_prod.literature_surveillance.ranked
-COMMENT 'Literature surveillance articles ranked by L3 score, as the last run of the daily job scored them, with the feed each is on (a reviewer decision, else accepted automatically, else ignored by an exclusion rule, else review).'
+COMMENT 'Literature surveillance articles ranked by L3 score, as the last run of the daily job scored them, with the feed each is on (a reviewer decision, else accepted automatically, else ignored by an exclusion rule, else review). auto_accept says why an article accepted automatically is worth reading; emailed_on is the date of the Articles of Interest email that sent it.'
 AS
 WITH a AS (
   SELECT id, aliases, title, journal, pub_date, first_seen, sources, matched_terms, study_type, priority, exclusion_rule, url,
          CAST(get_json_object(record, '$.l3_score') AS INT) AS l3_score,
          from_json(get_json_object(record, '$.l3_intents'), 'ARRAY<STRUCT<intent: STRING, points: INT>>') AS l3_reasons,
          from_json(get_json_object(record, '$.l3_push_down'), 'ARRAY<STRUCT<rule: STRING, points: INT>>') AS l3_push_down,
-         get_json_object(record, '$.auto_accept') AS auto_accept
+         get_json_object(record, '$.auto_accept') AS auto_accept,
+         CAST(get_json_object(record, '$.emailed.date') AS DATE) AS emailed_on
   FROM apps_prod.literature_surveillance.articles
 )
 SELECT a.id, a.title, a.journal, a.pub_date, a.first_seen, a.sources, a.matched_terms, a.study_type, a.priority, a.l3_score,
        transform(a.l3_reasons, x -> x.intent) AS l3_reasons, transform(a.l3_push_down, x -> x.rule) AS l3_push_down,
-       a.auto_accept, a.exclusion_rule, d.decision, d.reasons,
+       a.auto_accept, a.emailed_on, a.exclusion_rule, d.decision, d.reasons,
        CASE WHEN d.decision = 'accepted' THEN 'accepted' WHEN d.decision IN ('ignored', 'removed') THEN 'ignored'
             WHEN d.decision = 'restored' THEN 'review' WHEN a.auto_accept IS NOT NULL THEN 'accepted'
             WHEN a.exclusion_rule IS NOT NULL THEN 'ignored' ELSE 'review' END AS feed,

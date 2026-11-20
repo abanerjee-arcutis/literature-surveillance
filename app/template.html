@@ -209,6 +209,7 @@
   .btn.mv[data-to="ignored"]{--t-bg:#efeeeb;--t-bg2:#e2e1dc;--t-ink:#6b6a64}
   .dreasons{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:12px;font-size:13px}
   .dreasons .rl{color:var(--mute);margin-right:2px}
+  .dreasons .pill{white-space:normal}
   .dreasons .link{font-size:13px;color:var(--accent);font-weight:500;margin-left:4px}
   .rsn{display:flex;align-items:center;gap:5px;margin-top:4px;font-size:12px;color:var(--ink2);min-width:0}
   .rsn svg{width:12px;height:12px;color:var(--accent);flex-shrink:0}
@@ -383,7 +384,7 @@
       <div class="thead"><div class="art"><input type="checkbox" class="sel selall" title="Select all articles shown" aria-label="Select all articles shown"><span>Article</span></div><div class="sorth" data-sort="published" role="button" tabindex="0" title="Sort by publication date">Published<span class="arr"></span></div><div>Source</div><div>Matched term</div><div>Disease</div><div>Intent</div><div>Access</div><div class="thi">Priority<button class="info" aria-label="How priority is set" aria-controls="prioTip" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></button></div><div style="text-align:right">Actions</div></div>
       <div id="rows-accepted"></div>
     </div>
-    <div class="foot">Accepted articles are the ones worth passing on to the team. The line under each title says why: ✓ the reasons a reviewer ticked (change them on the article page), ✉ sent in an Articles of Interest email, ★ Must read by its L3 score, both accepted automatically. Use the ⋮ menu on a row to move one back to review or ignore it.</div>
+    <div class="foot">Accepted articles are the ones worth passing on to the team. The line under each title says why the article is worth reading: ✓ the reasons a reviewer ticked (change them on the article page), or, for one accepted automatically, the L3 reasons it matched, marked ✉ when an Articles of Interest email sent it and ★ when it is Must read. Hover the line for the why behind each reason. Use the ⋮ menu on a row to move one back to review or ignore it.</div>
   </section>
 
   <!-- Review feed -->
@@ -563,7 +564,8 @@
       <div class="h2s" id="expScope" style="margin-top:0"></div>
       <div class="expopt">
         <div><b>Email digest</b><span>Grouped by priority, each article with its link, citation, summary and why it is on the list. Paste it into an Outlook email.</span><br>
-          <label><input type="checkbox" id="digSummary" checked> Include the summaries</label></div>
+          <label><input type="checkbox" id="digSummary" checked> Include the summaries</label>
+          <label><input type="checkbox" id="digWhy" checked> Include the whys</label></div>
         <button class="btn primary small" id="copyDigest">Copy digest</button>
       </div>
       <div class="expopt">
@@ -629,7 +631,7 @@
       <h3>The three feeds</h3>
       <ul>
         <li><b>Review feed</b>: articles waiting for a decision, highest score first.</li>
-        <li><b>Accepted feed</b>: articles worth passing on. Besides those a reviewer accepts, two kinds arrive by themselves: ✉ every article sent in an INFORM Articles of Interest email, and ★ every new Must read article.</li>
+        <li><b>Accepted feed</b>: articles worth passing on. Besides those a reviewer accepts, two kinds arrive by themselves: ✉ every article sent in an INFORM Articles of Interest email, and ★ every new Must read article. The line under each title says why it is worth reading: the reasons a reviewer ticked, or the L3 reasons it matched (for an emailed article no reason matched, its intent, disease and keywords).</li>
         <li><b>Ignored feed</b>: articles a reviewer ignored, and those the exclusion rules filter out (transplant and blood-cancer context, COPD and asthma, veterinary studies, oral JAK inhibitors, errata and retractions). Nothing is deleted; <i>Restore</i> sends an article back for review.</li>
       </ul>
       <h3>Deciding</h3>
@@ -710,13 +712,13 @@ const UNINFORMATIVE = ['Other', 'Unassigned', 'Unknown', 'Article', 'Not stated'
 // the article's tags, then the keywords surveillance.py found in its title and abstract (tag_keywords); the study
 // type is left out when the intent already says it (Real-world → Real-world use)
 // then what the L3 score says about it: its priority, the reasons to read that matched, the push-downs that fired, the
-// reviewer's own L3 keywords, and the distinctions that change how it is read (sent in an email, how much text there is)
+// reviewer's own L3 keywords, and how much text there is. That an Articles of Interest email sent it is not offered:
+// it says where the article came from, not why it matters
 const articleKeywords = a => [...new Set([
   ...(a.score || a.l3i.length ? [`Priority: ${a.prio}`] : []),
   ...a.l3i.map(h => `L3 reason: ${h.intent}`),
   ...a.pen.map(p => `Pushed down: ${p.rule}`),
   ...a.l3.map(k => `My L3 keyword: ${k}`),
-  ...(a.emailed ? ['Sent in an Articles of Interest email'] : []),
   ...(a.access ? [`Access: ${a.access}`] : []),
   ...a.dz, a.intent, (a.intent || '').startsWith(a.type) ? '' : a.type, ...a.keywords,
   UNINFORMATIVE.includes(a.sponsor || '') ? '' : `Funded by ${a.sponsor}`])].filter(k => !UNINFORMATIVE.includes(k));
@@ -820,8 +822,15 @@ function decisionFor(a, feed) {
   if (feed === 'ignored') return a.rule && !a.auto ? null : 'ignored';
   return a.rule || a.auto ? 'restored' : null;
 }
-// the icon of the line under an article accepted automatically: sent in an email, or Must read
+// the line under an article accepted automatically: an icon for how it got there (sent in an email, or Must read),
+// then a.auto, why it is worth reading. Its tooltip says how, then the why behind each L3 reason it names (the why
+// column of the intents table, in Settings → L3)
 const autoIcon = a => a.emailed ? ICON.mail : ICON.star;
+const L3_WHY = Object.fromEntries((SETTINGS.l3_rules || []).filter(r => r.why).map(r => [r.intent_id, r.why]));
+const reasonLabel = h => h.id === 'own_keywords' ? `L3 keyword: ${h.keywords.join(', ')}` : h.intent;   // reason_label() in surveillance.py
+const autoTitle = a => [a.emailed ? `Accepted automatically: sent in the Articles of Interest email of ${fmtDay(a.emailed.date)}`
+                                  : 'Accepted automatically: Must read by its L3 score',
+  ...a.l3i.slice(0, a.emailed ? 3 : 1).filter(h => L3_WHY[h.id]).map(h => `${reasonLabel(h)}: ${L3_WHY[h.id]}`)].join('\n\n');
 const reason = a => a.decision === 'ignored' || !a.rule ? BY_REVIEWER : a.rule;
 const reasonNote = a => a.decision === 'ignored' || !a.rule ? (a.reasons.join(' · ') || 'Marked not relevant during review') : (a.note || '');
 
@@ -898,7 +907,7 @@ const newBadge = a => isNew(a) ? `<span class="new" title="Found in the last 7 d
 function feedRow(a, feed, from = feed) {   // feed: the buttons and notes it gets; from: the list it is shown in
   const r = document.createElement('div'); r.className = 'trow';
   const why = a.reasons.join(' · '), auto = feed === 'accepted' && !a.decision && a.auto, by = decidedLine(a);
-  r.innerHTML = `<div class="art">${selBox(a)}<div style="min-width:0"><button class="ttl" title="${esc(a.title)}">${esc(a.title)}</button><div class="meta">${bmButton(a)}${newBadge(a)}${esc(a.meta)}</div>${why ? `<div class="rsn" title="${esc(by || DECIDED_VERB[a.decision] || 'Decided')} because: ${esc(why)}">${a.decision === 'ignored' ? ICON.ignored : ICON.accepted}<span>${esc(why)}</span></div>` : auto ? `<div class="rsn auto" title="Accepted automatically: ${esc(a.auto)}">${autoIcon(a)}<span>${esc(a.auto)}</span></div>` : ''}</div></div>
+  r.innerHTML = `<div class="art">${selBox(a)}<div style="min-width:0"><button class="ttl" title="${esc(a.title)}">${esc(a.title)}</button><div class="meta">${bmButton(a)}${newBadge(a)}${esc(a.meta)}</div>${why ? `<div class="rsn" title="${esc(by || DECIDED_VERB[a.decision] || 'Decided')} because: ${esc(why)}">${a.decision === 'ignored' ? ICON.ignored : ICON.accepted}<span>${esc(why)}</span></div>` : auto ? `<div class="rsn auto" title="${esc(autoTitle(a))}">${autoIcon(a)}<span>${esc(a.auto)}</span></div>` : ''}</div></div>
     ${dateCell(a)}${srcCell(a)}
     <div class="cell">${esc(a.term)}</div><div class="cell">${esc(a.dz.join(', '))}</div>
     <div class="cell${a.intent === 'Safety' ? ' safety' : ''}" title="${esc(a.intent_why)}">${esc(a.intent)}</div>
@@ -1194,7 +1203,9 @@ function renderReasons(a) {
   by.hidden = !by.textContent;
   if (!d && a.auto && statusOf(a) === 'accepted') {   // accepted automatically: say why, and let a reviewer add reasons
     el.hidden = false;
-    el.innerHTML = `<span class="rl">Accepted automatically:</span><span class="pill p-acc">${esc(a.auto)}</span><button class="link">Add reasons</button>`;
+    const why = Object.fromEntries(a.l3i.map(h => [reasonLabel(h), L3_WHY[h.id] || '']));   // hover a reason for the why behind it
+    el.innerHTML = `<span class="rl">Accepted automatically:</span>` + a.auto.split(' · ').map(t =>
+      `<span class="pill p-acc" title="${esc(why[t.replace(`${a.prio}: `, '')] || '')}">${esc(t)}</span>`).join('') + '<button class="link">Add reasons</button>';
     el.querySelector('button').onclick = () => askWhy(a, 'accepted', reasons => {
       saveDecision(a, 'accepted', reasons); renderAll(); renderReasons(a);
       toast('Reasons saved', () => { saveDecision(a, null); renderAll(); renderReasons(a); });
@@ -1286,7 +1297,7 @@ function showDetail(a, from, fromRoute) {
   // the L3 score and what makes it: each reason with the keywords that matched, then the push-down rules
   document.getElementById('dL3').innerHTML = `<span style="color:${PRIO[a.prio] || 'inherit'}">${esc(a.prio)}</span> · ${a.score} points`;
   document.getElementById('dL3Why').innerHTML =
-    a.l3i.map(h => `<div><b>+${h.points}</b><span>${esc(h.intent)}: <i>${esc(h.keywords.join(', '))}</i></span></div>`).join('') +
+    a.l3i.map(h => `<div title="${esc(L3_WHY[h.id] || '')}"><b>+${h.points}</b><span>${esc(h.intent)}: <i>${esc(h.keywords.join(', '))}</i></span></div>`).join('') +
     a.pen.map(p => `<div><b class="minus">${p.points}</b><span>${esc(p.rule)}</span></div>`).join('') +
     (a.l3i.length > 1 ? `<div><b></b><span>Best reason, plus 5 for each further one (up to 15)${a.pen.length ? ', minus the push-downs' : ''}</span></div>` : '');
   document.getElementById('dMailCard').hidden = !a.emailed;
@@ -1729,15 +1740,16 @@ function scopeText(rows) {
   const on = FACETS.filter(f => state[f.key] !== 'All').map(f => `${f.label}: ${state[f.key]}`).concat(state.q.trim() ? [`search “${state.q.trim()}”`] : []);
   return `${rows.length} ${selected.size && pickedHere().length ? 'selected ' : ''}article${rows.length === 1 ? '' : 's'} from the ${FEEDS[state.feed].toLowerCase()}${on.length ? ' · ' + on.join(' · ') : ''}`;
 }
-// why the article is on the list: the reasons a reviewer ticked, else why it was accepted automatically, else its best L3 reason
-const whyListed = a => a.reasons.length ? a.reasons.join(' · ') : !a.decision && a.auto ? a.auto : a.l3i[0] ? a.l3i[0].intent : '';
+// why the article is on the list: the reasons a reviewer ticked, else why it was accepted automatically (for an
+// emailed article its L3 reasons, never just that it was emailed), else its best L3 reason
+const whyListed = a => a.reasons.length ? a.reasons.join(' · ') : !a.decision && a.auto ? a.auto : a.l3i[0] ? reasonLabel(a.l3i[0]) : '';
 // the summary without the notes meant for reviewers; nothing when only the title is known
 function digestSummary(a) {
   if (a.access === 'Title only' || !a.summary) return '';
   const s = a.summary.replace(/\s*\((Based on the abstract only|Summarised from the open-access full text)[\s\S]*$/, '').trim();
   return s.length > 480 ? s.slice(0, s.lastIndexOf(' ', 480)) + '…' : s;
 }
-function digest(rows, withSummary) {
+function digest(rows, withSummary, withWhy = true) {
   rows = sortRows(rows, 'priority');
   const counts = {};
   rows.forEach(a => counts[a.prio] = (counts[a.prio] || 0) + 1);
@@ -1751,7 +1763,7 @@ function digest(rows, withSummary) {
       html += `<p style="margin:18px 0 8px;font-size:15px;font-weight:600;color:#0f6e6b">${esc(band)} (${counts[band]})</p>`;
       text += `\n${band.toUpperCase()} (${counts[band]})\n`;
     }
-    const sum = withSummary ? digestSummary(a) : '', why = whyListed(a);
+    const sum = withSummary ? digestSummary(a) : '', why = withWhy ? whyListed(a) : '';
     const cite = a.cite + (a.type && a.type !== 'Article' && a.type !== 'Unknown' ? ` · ${a.type}` : '');
     html += `<p style="margin:0 0 14px"><a href="${esc(a.link)}" style="color:#0f6e6b;font-weight:600;text-decoration:none">${esc(a.title)}</a><br>` +
       `<span style="color:#6b6a64">${esc(cite)}</span>${sum ? `<br>${esc(sum)}` : ''}${why ? `<br><span style="color:#6b6a64"><i>Why:</i> ${esc(why)}</span>` : ''}</p>`;
@@ -1768,7 +1780,8 @@ const CSV_COLUMNS = [
   ['Access', a => a.access], ['Link', a => a.link], ['Summary', a => a.summary], ['Key points', a => a.points.join(' | ')],
   ['Why it matters', a => a.why], ['L3 reasons', a => a.l3i.map(h => `${h.intent} (+${h.points})`).join('; ')],
   ['Pushed down', a => a.pen.map(p => `${p.rule} (${p.points})`).join('; ')], ['Reviewer reasons', a => a.reasons.join('; ')],
-  ['Accepted automatically', a => !a.decision && a.auto ? a.auto : ''], ['Decision', a => a.decision || ''],
+  ['Accepted automatically', a => !a.decision && a.auto ? a.auto : ''], ['Articles of Interest email', a => a.emailed ? a.emailed.date : ''],
+  ['Decision', a => a.decision || ''],
   ['Decided by', a => a.decided?.by || ''], ['Decided on', a => (a.decided?.at || '').slice(0, 10)],
   ['Exclusion rule', a => a.rule || ''], ['First found', a => (a.first_seen || '').slice(0, 10)], ['Article id', a => a.id],
 ];
@@ -1779,17 +1792,22 @@ function csv(rows) {
 function renderExport() {
   const rows = sortRows(exportRows());
   document.getElementById('expScope').textContent = `Exports ${scopeText(rows)}. ` + (pickedHere().length ? 'Untick articles to export the whole list instead.' : 'Tick articles first to export only those, or change the feed, filters or search.');
-  document.getElementById('digest').innerHTML = rows.length ? digest(rows, document.getElementById('digSummary').checked).html : '<div class="empty">No articles in this list.</div>';
+  document.getElementById('digest').innerHTML = rows.length ? digest(rows, document.getElementById('digSummary').checked, document.getElementById('digWhy').checked).html : '<div class="empty">No articles in this list.</div>';
   document.getElementById('copyDigest').disabled = document.getElementById('downloadCsv').disabled = !rows.length;
 }
 document.querySelectorAll('.exportBtn').forEach(b => b.onclick = () => { renderExport(); openDialog('export'); });
 try { if (localStorage.getItem('litsurv.digSummary') === '0') document.getElementById('digSummary').checked = false; } catch (e) {}
+try { if (localStorage.getItem('litsurv.digWhy') === '0') document.getElementById('digWhy').checked = false; } catch (e) {}
+document.getElementById('digWhy').onchange = e => {
+  try { localStorage.setItem('litsurv.digWhy', e.target.checked ? '1' : '0'); } catch (err) {}
+  renderExport();
+};
 document.getElementById('digSummary').onchange = e => {
   try { localStorage.setItem('litsurv.digSummary', e.target.checked ? '1' : '0'); } catch (err) {}
   renderExport();
 };
 document.getElementById('copyDigest').onclick = () => {
-  const d = digest(exportRows(), document.getElementById('digSummary').checked);
+  const d = digest(exportRows(), document.getElementById('digSummary').checked, document.getElementById('digWhy').checked);
   copyText(d.text, 'Digest copied: paste it into an email', d.html, document.getElementById('digest'));
 };
 document.getElementById('downloadCsv').onclick = () => {
