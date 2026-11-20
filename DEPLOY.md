@@ -182,12 +182,12 @@ from the project folder:
 
 ```powershell
 python -c "import json; json.dump(json.load(open('job.json'))['new_settings'], open('job_new.json', 'w'))"
-databricks jobs create --json @job_new.json
+databricks jobs create --json '@job_new.json'
 ```
 
 It prints the new job's id: put it in `job.json` as `job_id`. The job **Literature surveillance (daily)** is
 under **Jobs & Pipelines** in the sidebar. To change its settings later, edit `job.json` and run
-`databricks jobs reset --json @job.json` (it replaces all of the job's settings with the file's).
+`databricks jobs reset --json '@job.json'` (it replaces all of the job's settings with the file's).
 
 The repo is public, so the job should need no Git credentials. If a run fails at checkout with a Git credential
 error, add a GitHub token under your Databricks **Settings → Linked accounts → Git integration**.

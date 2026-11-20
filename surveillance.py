@@ -9,7 +9,7 @@ articles (_rules: exclusion rules, disease / study type / intent / keyword taggi
 that score them (_intents), the articles sent in Articles of Interest emails (_ci_articles), reviewer decisions
 (_decisions), the article store (_articles) and a run log (_runs). The job searches each source for each term over
 the date window, de-duplicates the hits into the store (same PMID, same DOI or same title means same article),
-applies the exclusion rules, tags disease / product / study type / access level, scores each article (L3), writes
+applies the exclusion rules, tags disease / product / study type / article type, scores each article (L3), writes
 rule-based summaries from the abstract, and saves the store and the page's rows; the Databricks app builds the page
 from the tables. Re-running only fetches new articles; articles already in the store are kept.
 
@@ -1420,7 +1420,7 @@ def main():
           f"({sum(r['status'] == 'accepted' and not r['decision'] for r in rows)} automatically), {feeds['ignored']} ignored → {page_to}")
     print(f"sources: {src['PubMed']} PubMed · {src['OpenAlex']} OpenAlex · {src['Google Scholar']} Google Scholar · "
           f"{src['Email']} only from an email · {sum(', ' in r['src'] for r in rows)} found by more than one (shown once)")
-    print(f"access: {acc['Full text']} full text (PMC) · {acc['Abstract']} abstract · {acc['Title only']} title only")
+    print(f"article type: {acc['Full text']} full text (PMC) · {acc['Abstract']} abstract · {acc['Title only']} title only")
     print("priority: " + " · ".join(f"{n} {band.lower()}" for band, n in pri.items()) +
           f" · {sum(bool(r['l3']) for r in rows)} with an L3 keyword from Settings")
     intents = {k: sum(r["intent"] == k for r in rows if r["status"] == "review") for k in RULES["intent_labels"]}

@@ -117,7 +117,7 @@ CREATE TABLE IF NOT EXISTS <catalog>.lit_surveillance.articles_enriched (
   product      STRING,                 -- Roflumilast / Competitor / Class
   study_type   STRING,
   sponsor      STRING,
-  access       STRING,                 -- Full text / Abstract / Title only
+  access       STRING,                 -- Article Type: Full text / Abstract / Title only
   rule         STRING,                 -- exclusion rule that fired, else NULL
   format_note  STRING,
   priority     STRING,                 -- High / Medium / Check / Low
