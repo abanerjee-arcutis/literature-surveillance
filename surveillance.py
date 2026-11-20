@@ -760,6 +760,24 @@ def format_note(a: dict) -> str:
     return " ".join(n + "." for n in notes)
 
 
+def article_format(a: dict) -> str:
+    """What kind of publication the record is, for the page's Format filter: Preprint or Book chapter (the study type),
+    Congress abstract, else Journal article. A congress abstract is one PubMed types as Congress, or a supplement item
+    with only a title (a supplement article with an abstract is often a sponsored review). OpenAlex gives abstracts no
+    type of their own, so a record not from PubMed also counts when it is in a supplement or the congress_abstract
+    push-down caught its numbered title; that title rule is not used on PubMed records, where it also catches names
+    such as "OX40 ligand"."""
+    if a.get("study_type") in ("Preprint", "Book chapter"):
+        return a["study_type"]
+    supplement = bool(re.search(r"suppl", a.get("issue") or "", re.I))
+    if a.get("study_type") == "Conference abstract" or supplement and a.get("access") == "Title only":
+        return "Congress abstract"
+    numbered = any(p["id"] == "congress_abstract" for p in a.get("l3_push_down") or ())
+    if a.get("origin", "PubMed") != "PubMed" and (supplement or numbered):
+        return "Congress abstract"
+    return "Journal article"
+
+
 def l3_text(text: str | None) -> str:
     """Lower-case letters and digits, one space between words: the text L3 reasons look for their keywords in."""
     return " ".join(re.findall(r"[a-z0-9]+", (text or "").lower()))
@@ -966,6 +984,7 @@ def to_page_row(a: dict, decision: str | None, key: str | None = None, reasons=(
         src=", ".join(a.get("sources") or [origin]), via=via,
         term=", ".join(a["matched_terms"]), dz=a["disease"], product=a["product"], type=a["study_type"],
         intent=a["intent"], intent_why=a["intent_why"], access=a["access"], prio=a["priority"], l3=a["l3_keywords"], sponsor=a["sponsor"],
+        fmt=article_format(a), lang=a.get("language") or "eng",
         score=a["l3_score"], l3i=a["l3_intents"], pen=a["l3_push_down"], auto=a["auto_accept"], emailed=a.get("emailed"),
         link=links[0]["url"] if links else "", links=links,
         summary=a["summary"], points=a["points"], why=a["why"], status=page_status(a["rule"], decision, a["auto_accept"]),

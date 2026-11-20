@@ -62,11 +62,14 @@ The offline test (`python tests/test_offline.py`) needs neither.
   page it matched. Below them, your own L3 keywords can be added: an article with one in its title or abstract
   gets a reason worth 60 points and is marked ↑. Saved settings apply from the next run.
 
-Above the feed tabs, a filters card holds the search box and one row of chips each for Published (last 30,
-60 or 90 days, by publication date), Added (last 7 or 30 days, by when a run first found the article), Priority,
-Disease, Intent, Source and Term, plus Reason (the reasons ticked,
+Above the feed tabs, a filters card holds the search box and one row of chips each for Published (last 15, 30,
+60 or 90 days, by publication date), Priority, Format (Journal article, Congress abstract, Preprint, Book chapter:
+`article_format` in `surveillance.py`; *Journal article* hides the other three), Language (English or not, from the
+PubMed or OpenAlex record), Disease, Intent, Source and Term, plus Reason (the reasons ticked,
 most used first) on a feed that has any. Each chip shows how many articles in the current feed it would leave, given the other
-filters; clicking a selected chip again clears it, and *Clear filters* resets them all. The chevron folds
+filters; clicking a selected chip again clears it, and *Clear filters* resets them all. While a search or filter is on, each
+feed tab shows its matches (*3 of 235*), and an empty feed links to the feeds that have some: Must read and emailed
+articles are on the Accepted feed, so a search on the Review feed alone misses them. The chevron folds
 the card down to the search box (its header then names the filters that are on); the browser remembers it. The filters apply
 to all three feeds. Every move can be undone from the message at the bottom of the page.
 

@@ -52,6 +52,14 @@ h = by["42600002"]   # German, ahead of print, no abstract
 assert "Not in English" in h["summary"] and "Ahead-of-print" in h["summary"], h["summary"]
 k = by["42600003"]   # Bookshelf chapter
 assert k["study_type"] == "Book chapter" and k["access"] == "Abstract" and k["journal"] == "StatPearls"
+# the page's Format and Language filters
+assert [S.article_format(x) for x in (a, f, k)] == ["Journal article", "Congress abstract", "Book chapter"]
+assert S.article_format(dict(a, issue="Suppl 2")) == "Journal article"                 # a sponsored supplement article, with its abstract
+numbered = [dict(id="congress_abstract", rule="Congress abstract (numbered title)", points=-40)]
+assert S.article_format(dict(a, origin="OpenAlex", l3_push_down=numbered)) == "Congress abstract"   # e.g. "0438 Perceptions of ..."
+assert S.article_format(dict(a, l3_push_down=numbered)) == "Journal article"           # PubMed: "OX40 ligand ..." is not an abstract
+assert S.article_format(dict(a, origin="OpenAlex", issue="Supplement_1")) == "Congress abstract"
+assert (S.to_page_row(h, None)["lang"], S.to_page_row(a, None)["lang"], S.to_page_row(f, None)["fmt"]) == ("ger", "eng", "Congress abstract")
 
 # --- intent ------------------------------------------------------------------------
 assert (a["intent"], a["intent_why"]) == ("Safety", 'title: "Allergic"'), a["intent_why"]
